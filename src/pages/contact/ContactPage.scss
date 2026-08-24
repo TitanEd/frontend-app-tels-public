@@ -1,0 +1,120 @@
+.tels-contact__accent {
+  color: var(--pgn-color-primary-base);
+}
+
+.tels-contact__social {
+  margin-top: 1.5rem;
+}
+
+.tels-contact__social-heading {
+  font-size: .85rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--pgn-color-text-secondary);
+}
+
+.tels-contact__social-row {
+  display: flex;
+  gap: .75rem;
+  margin-top: .5rem;
+}
+
+.tels-contact__social-link {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--pgn-color-chrome-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pgn-color-text-secondary);
+}
+
+.tels-contact__form-title {
+  margin-top: 0;
+}
+
+.tels-contact__consent-input {
+  width: 1rem !important;
+  height: 1rem !important;
+  min-width: 1rem !important;
+  max-width: 1rem !important;
+  margin: .15rem 0 0;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  accent-color: var(--pgn-color-primary-base);
+  flex-shrink: 0;
+}
+
+.tels-contact__consent-label {
+  display: inline !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+  line-height: 1.4;
+}
+
+.tels-contact__text-center {
+  text-align: center;
+}
+
+.tels-contact__lead-centered {
+  text-align: center;
+  margin: 0 auto 2.5rem;
+}
+
+.tels-contact__office-address {
+  margin-bottom: 0;
+}
+
+.tels-contact__commitments {
+  margin-top: 2rem;
+}
+
+.tels-contact__popular-actions {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.tels-contact__faq {
+  margin-top: 2rem;
+}
+
+// Subject <select>: same branded option hover/selected as tels-brand-openedx
+// overrides/_selects.scss (primary, not browser blue). Kept as a local safety
+// net when brand CSS is cached; brand package is source of truth.
+.tels-form select {
+  accent-color: var(--pgn-color-primary-base);
+
+  option {
+    background-color: var(--pgn-color-white);
+    color: var(--pgn-color-text-base);
+
+    &:checked,
+    &:hover,
+    &:focus {
+      background-color: var(--pgn-color-primary-base) !important;
+      background: var(--pgn-color-primary-base) linear-gradient(
+        0deg,
+        var(--pgn-color-primary-base) 0%,
+        var(--pgn-color-primary-base) 100%
+      ) !important;
+      color: var(--pgn-color-white) !important;
+    }
+  }
+
+  @supports (appearance: base-select) {
+    appearance: base-select;
+
+    &::picker(select) {
+      appearance: base-select;
+      background-color: var(--pgn-color-white);
+      border: 1px solid var(--pgn-color-primary-base);
+      border-radius: var(--pgn-size-border-radius-base, 8px);
+      padding: .25rem 0;
+    }
+  }
+}

@@ -1,0 +1,41 @@
+@keyframes tels-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.tels-skeleton {
+  width: var(--tels-skeleton-w, 100%);
+  height: var(--tels-skeleton-h, 12px);
+  border-radius: var(--tels-skeleton-r, 6px);
+  background: linear-gradient(90deg, #F2F4F7 0%, #E4E7EC 50%, #F2F4F7 100%);
+  background-size: 200% 100%;
+  animation: tels-shimmer 1.2s ease-in-out infinite;
+
+  &--media {
+    aspect-ratio: 16 / 9;
+    border-radius: 0;
+  }
+}
+
+.tels-card__body--skeleton {
+  gap: .55rem;
+}
+
+.tels-skeleton-meta {
+  margin-top: auto;
+  display: flex;
+  gap: .5rem;
+  padding-top: .75rem;
+}
+
+.tels-syllabus-item--skeleton {
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

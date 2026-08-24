@@ -13,6 +13,8 @@ module.exports = createConfig(
       'no-restricted-exports': 'off',
       // There is no reason to disallow this syntax anymore; we don't use regenerator-runtime in new browsers
       'no-restricted-syntax': 'off',
+      // Project previously used TypeScript; PropTypes are not required for JS conversion.
+      'react/prop-types': 'off',
     },
   },
 );

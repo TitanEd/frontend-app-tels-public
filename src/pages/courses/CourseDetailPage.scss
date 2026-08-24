@@ -1,0 +1,196 @@
+.tels-course-detail__skeleton-mb {
+  margin-bottom: 1rem;
+}
+
+.tels-course-detail__spacer {
+  &--6 {
+    height: 6px;
+  }
+
+  &--8 {
+    height: 8px;
+  }
+
+  &--10 {
+    height: 10px;
+  }
+
+  &--12 {
+    height: 12px;
+  }
+
+  &--18 {
+    height: 18px;
+  }
+
+  &--20 {
+    height: 20px;
+  }
+
+  &--24 {
+    height: 24px;
+  }
+}
+
+.tels-course-detail__meta-skeletons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tels-course-detail__title {
+  margin-top: .75rem;
+}
+
+.tels-course-detail__offered {
+  margin-top: 1rem;
+}
+
+.tels-course-detail__enroll-btn {
+  width: 100%;
+}
+
+.tels-course-detail__perks {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  font-size: .9rem;
+  color: var(--pgn-color-text-secondary);
+}
+
+.tels-course-detail__perk {
+  margin-bottom: .4rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.tels-course-detail__benefits {
+  margin-top: 1.5rem;
+}
+
+.tels-course-detail__benefit-body {
+  margin: 0;
+}
+
+.tels-course-detail__two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+
+  &--aligned {
+    align-items: center;
+  }
+}
+
+.tels-course-detail__list {
+  padding-left: 1.1rem;
+  color: var(--pgn-color-text-secondary);
+  line-height: 1.8;
+
+  &--loose {
+    line-height: 1.9;
+  }
+
+  &--flush {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--pgn-color-text-secondary);
+    line-height: 1.9;
+  }
+}
+
+.tels-course-detail__instructor {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  align-items: center;
+}
+
+.tels-course-detail__instructor-avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--pgn-color-chrome-surface-subtle);
+}
+
+.tels-course-detail__instructor-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tels-course-detail__instructor-name {
+  margin-bottom: .25rem;
+}
+
+.tels-course-detail__instructor-role {
+  margin-bottom: .75rem;
+}
+
+.tels-course-detail__instructor-bio {
+  margin: 0;
+}
+
+.tels-course-detail__testimonials {
+  margin-top: 1.5rem;
+}
+
+.tels-course-detail__quote-icon {
+  color: var(--pgn-color-primary-base);
+  font-size: 1.5rem;
+}
+
+.tels-course-detail__quote-text {
+  margin-top: .75rem;
+}
+
+.tels-course-detail__quote-name {
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+.tels-course-detail__quote-role {
+  font-size: .85rem;
+}
+
+.tels-course-detail__cert-card {
+  text-align: center;
+}
+
+.tels-course-detail__cert-icon {
+  color: var(--pgn-color-primary-base);
+  font-size: 3.5rem;
+}
+
+.tels-course-detail__cert-title {
+  margin-top: 1rem;
+}
+
+.tels-course-detail__cert-course {
+  margin: 0;
+}
+
+.tels-course-detail__cert-issued {
+  margin: 0;
+  font-size: .85rem;
+}
+
+.tels-course-detail__faq {
+  margin-top: 1.5rem;
+}
+
+.tels-course-detail__skills {
+  margin-top: 1rem;
+}
+
+.tels-course-detail__related-title {
+  margin-bottom: 0;
+}
+
+.tels-course-detail__related-grid {
+  margin-top: 1.5rem;
+}

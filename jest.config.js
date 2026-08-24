@@ -11,5 +11,3 @@ module.exports = createConfig('jest', {
     'src/i18n',
   ],
 });
-
-export {};
