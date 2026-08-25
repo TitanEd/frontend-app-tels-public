@@ -1,0 +1,50 @@
+.tels-loading {
+  width: 100%;
+  padding: 2rem 0 3rem;
+
+  &__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  &__visible-status {
+    margin: 0 0 1.25rem;
+    font-size: .95rem;
+    color: var(--pgn-color-text-secondary, #667085);
+  }
+
+  &--page {
+    min-height: 50vh;
+  }
+
+  &__hero {
+    margin-bottom: 2rem;
+  }
+
+  &__hero-title {
+    margin: .75rem 0 1rem;
+  }
+
+  &__hero-lead {
+    margin-bottom: 1.5rem;
+  }
+
+  &__section {
+    margin-top: 2rem;
+  }
+
+  &__section-title {
+    margin-bottom: 1rem;
+  }
+
+  &--inline {
+    padding: 1rem 0;
+  }
+}

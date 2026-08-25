@@ -20,7 +20,7 @@ import {
   faShieldAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import CourseCard from '../../components/CourseCard';
-import { CourseGridSkeleton } from '../../components/Skeletons';
+import LoadingScreen from '../../components/LoadingScreen';
 import { fetchCourses, PARTNER_LOGOS } from '../../data/telsData';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './messages';
@@ -226,7 +226,13 @@ const HomePage = () => {
             </Link>
           </div>
           <div className="tels-home__featured-grid">
-            {isLoading ? <CourseGridSkeleton count={4} cols={4} /> : (<div className="tels-grid tels-grid--4">{featured.map((c) => <CourseCard key={c.id} course={c} />)}</div>)}
+            {isLoading ? (
+              <LoadingScreen variant="courses" count={4} cols={4} showLabel={false} />
+            ) : (
+              <div className="tels-grid tels-grid--4">
+                {featured.map((c) => <CourseCard key={c.id} course={c} />)}
+              </div>
+            )}
           </div>
         </div>
       </section>
