@@ -10,7 +10,7 @@ import { FooterSlot } from '@edx/frontend-component-footer';
 import messages from './i18n';
 import AppRoutes from './routes/AppRoutes';
 import HeaderSlot from './plugin-slots/HeaderSlot';
-import { localIndigoConfig } from './tels-chrome/localIndigoConfig';
+import { localIndigoConfig } from './plugin-slots/localIndigoConfig';
 import './index.scss';
 
 const queryClient = new QueryClient();
@@ -39,7 +39,7 @@ initialize({
   hydrateAuthenticatedUser: true,
   handlers: {
     config: () => {
-      mergeConfig(localIndigoConfig, 'Public MFE local Indigo/Tels chrome config');
+      mergeConfig(localIndigoConfig, 'Public MFE local Indigo/plugin-slots config');
     },
   },
 });

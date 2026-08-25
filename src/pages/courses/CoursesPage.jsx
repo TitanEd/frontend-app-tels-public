@@ -9,7 +9,7 @@ import {
   faChevronDown, faChevronUp, faTimes, faSearch,
 } from '@fortawesome/free-solid-svg-icons';
 import CourseCard from '../../components/CourseCard';
-import { CourseGridSkeleton, Skeleton } from '../../components/Skeletons';
+import LoadingScreen, { Skeleton } from '../../components/LoadingScreen';
 import {
   fetchCourses, SUBJECTS, LEVELS, LANGUAGES, TYPES, ORGS,
 } from '../../data/telsData';
@@ -195,7 +195,7 @@ const CoursesPage = () => {
           )}
         </div>
 
-        {isLoading && <CourseGridSkeleton count={12} cols={4} />}
+        {isLoading && <LoadingScreen variant="courses" count={12} cols={4} showLabel={false} />}
 
         {!isLoading && filtered.length === 0 && (
         <div className="tels-empty">

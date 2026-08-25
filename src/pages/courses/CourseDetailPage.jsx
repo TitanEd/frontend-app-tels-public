@@ -22,76 +22,12 @@ import {
   faArrowRight,
 } from '@fortawesome/free-solid-svg-icons';
 import CourseCard from '../../components/CourseCard';
-import { CourseGridSkeleton, ModuleListSkeleton, Skeleton } from '../../components/Skeletons';
+import LoadingScreen from '../../components/LoadingScreen';
 import { fetchCourse, fetchCourses } from '../../data/telsData';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './course-detail-messages';
 import './CourseDetailPage.scss';
 
-const CourseAboutSkeleton = () => (
-  <>
-    <section className="tels-about-hero">
-      <div className="tels-container">
-        <Skeleton w={220} h={12} className="tels-course-detail__skeleton-mb" />
-        <div className="tels-about-grid">
-          <div>
-            <Skeleton w={90} h={22} r={4} />
-            <div className="tels-course-detail__spacer--12" />
-            <Skeleton w="80%" h={44} />
-            <div className="tels-course-detail__spacer--12" />
-            <Skeleton w="95%" h={16} />
-            <div className="tels-course-detail__spacer--8" />
-            <Skeleton w="70%" h={16} />
-            <div className="tels-course-detail__spacer--20" />
-            <div className="tels-course-detail__meta-skeletons">
-              <Skeleton w={100} h={14} /><Skeleton w={90} h={14} /><Skeleton w={110} h={14} /><Skeleton w={80} h={14} />
-            </div>
-          </div>
-          <aside className="tels-enrollcard">
-            <Skeleton w={90} h={30} />
-            <div className="tels-course-detail__spacer--10" />
-            <Skeleton w="100%" h={14} />
-            <div className="tels-course-detail__spacer--18" />
-            <Skeleton w="100%" h={42} r={8} />
-            <div className="tels-course-detail__spacer--8" />
-            <Skeleton w="100%" h={42} r={8} />
-          </aside>
-        </div>
-      </div>
-    </section>
-    <section className="tels-section">
-      <div className="tels-container">
-        <Skeleton w={240} h={30} />
-        <div className="tels-course-detail__spacer--24" />
-        <div className="tels-grid tels-grid--3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="tels-benefit">
-              <Skeleton w={44} h={44} r={10} />
-              <div className="tels-course-detail__spacer--12" />
-              <Skeleton w="60%" h={18} />
-              <div className="tels-course-detail__spacer--8" />
-              <Skeleton w="100%" h={14} /><div className="tels-course-detail__spacer--6" /><Skeleton w="80%" h={14} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-    <section className="tels-section tels-section--subtle">
-      <div className="tels-container">
-        <Skeleton w={220} h={28} />
-        <div className="tels-course-detail__spacer--20" />
-        <ModuleListSkeleton count={5} />
-      </div>
-    </section>
-    <section className="tels-section">
-      <div className="tels-container">
-        <Skeleton w={200} h={28} />
-        <div className="tels-course-detail__spacer--20" />
-        <CourseGridSkeleton count={4} cols={4} />
-      </div>
-    </section>
-  </>
-);
 const CourseDetailPage = () => {
   const intl = useIntl();
   const { courseId = '' } = useParams();
@@ -102,7 +38,7 @@ const CourseDetailPage = () => {
     ? intl.formatMessage(messages.pageTitle, { title: course.title })
     : intl.formatMessage(messages.pageTitleFallback));
   if (isLoading) {
-    return <CourseAboutSkeleton />;
+    return <LoadingScreen variant="courseDetail" showLabel={false} />;
   }
   if (!course) {
     return <Navigate to="/courses" replace />;

@@ -6,7 +6,7 @@
  *   org.openedx.frontend.layout.header.v1  → widget id: tels_header
  *   org.openedx.frontend.layout.footer.v1  → widget id: indigo_footer (hides default)
  */
-import { TelsHeader, IndigoFooter } from './src/tels-chrome';
+import { TelsHeader, IndigoFooter } from './src/plugin-slots';
 
 function addPlugins(config, slotName, plugins) {
   if (!config.pluginSlots[slotName]) {
