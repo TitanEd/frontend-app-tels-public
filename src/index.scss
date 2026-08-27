@@ -1,5 +1,27 @@
 @use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
 
-@import './example/index.scss';
 @import "~@edx/frontend-component-header/dist/index";
 @import "~@edx/frontend-component-footer/dist/footer";
+
+// Layout shell (footer sticky at bottom when content is short)
+.tels-shell {
+  min-height: 100vh;
+  background: var(--pgn-color-bg-base, #FFFFFF);
+}
+
+// Safety: Paragon reboot `a:hover` underlines all anchors. Marketing CTAs use
+// <Link className="tels-btn"> / <a className="tels-btn"> — never underline.
+a.tels-btn,
+.tels-btn,
+a.btn:not(.btn-link),
+.btn:not(.btn-link) {
+  --pgn-typography-link-decoration-base: none;
+  --pgn-typography-link-decoration-hover: none;
+  text-decoration: none;
+
+  &:hover,
+  &:focus,
+  &:active {
+    text-decoration: none;
+  }
+}
