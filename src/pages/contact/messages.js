@@ -126,6 +126,16 @@ const messages = defineMessages({
     defaultMessage: "Thanks — your message has been received. We'll be in touch within one business day.",
     description: 'Contact form success alert',
   },
+  formError: {
+    id: 'public.contact.form.error',
+    defaultMessage: 'Unable to submit — try again later.',
+    description: 'Contact form generic error',
+  },
+  formSubmitting: {
+    id: 'public.contact.form.submitting',
+    defaultMessage: 'Sending…',
+    description: 'Contact form submit pending label',
+  },
   fieldName: {
     id: 'public.contact.form.name',
     defaultMessage: 'Name',

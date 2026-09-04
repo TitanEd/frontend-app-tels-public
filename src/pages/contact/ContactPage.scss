@@ -30,6 +30,11 @@
   color: var(--pgn-color-text-secondary);
 }
 
+.tels-contact__social-link--static {
+  cursor: default;
+  pointer-events: none;
+}
+
 .tels-contact__form-title {
   margin-top: 0;
 }
@@ -118,3 +123,29 @@
     }
   }
 }
+
+.tels-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  padding: .75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--pgn-size-border-radius-base, 8px);
+  background: var(--pgn-color-success-100, #ECFDF5);
+  color: var(--pgn-color-text-base);
+  border: 1px solid var(--pgn-color-success-200, #A7F3D0);
+}
+
+.tels-alert--error {
+  background: var(--pgn-color-danger-100, #FEF2F2);
+  border-color: var(--pgn-color-danger-200, #FECACA);
+  color: var(--pgn-color-danger-base, #B91C1C);
+}
+
+.tels-field-error {
+  display: block;
+  margin-top: .35rem;
+  font-size: .8rem;
+  color: var(--pgn-color-danger-base, #B91C1C);
+}
+

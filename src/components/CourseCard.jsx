@@ -7,6 +7,8 @@ import './CourseCard.scss';
 
 const CourseCard = ({ course }) => {
   const intl = useIntl();
+  const rating = Number.isFinite(Number(course.rating)) ? Number(course.rating) : 0;
+  const reviews = Number.isFinite(Number(course.reviews)) ? Number(course.reviews) : 0;
   return (
     <article className="tels-card">
       <Link to={`/courses/${course.id}`} className="tels-card__img tels-card__img--photo" aria-label={course.title}>
@@ -21,14 +23,14 @@ const CourseCard = ({ course }) => {
         <div className="tels-card__org">{course.org}</div>
         <p className="tels-card__desc">{course.shortDesc}</p>
         <div className="tels-card__meta">
-          <span className="tels-card__rating" aria-label={intl.formatMessage(messages.ratedOutOfFive, { rating: course.rating })}>
+          <span className="tels-card__rating" aria-label={intl.formatMessage(messages.ratedOutOfFive, { rating })}>
             <FontAwesomeIcon icon={faStar} />
             {' '}
-            <strong>{course.rating.toFixed(1)}</strong>
+            <strong>{rating.toFixed(1)}</strong>
             <span className="tels-muted">
               {' '}
               (
-              {course.reviews.toLocaleString()}
+              {reviews.toLocaleString()}
               )
             </span>
           </span>

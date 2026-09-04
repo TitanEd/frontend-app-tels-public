@@ -194,3 +194,9 @@
 .tels-course-detail__related-grid {
   margin-top: 1.5rem;
 }
+
+.tels-course-detail__enroll-error {
+  margin: .75rem 0 0;
+  color: var(--pgn-color-danger-base, #B91C1C);
+  font-size: .875rem;
+}

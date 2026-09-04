@@ -21,15 +21,14 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import CourseCard from '../../components/CourseCard';
 import LoadingScreen from '../../components/LoadingScreen';
-import { fetchCourses, PARTNER_LOGOS } from '../../data/telsData';
+import { fetchCoursesList, fetchHomePromo } from '../../data/api';
+import { PARTNER_LOGOS } from '../../data/telsData';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './messages';
 import './HomePage.scss';
 
-const VIDEO_SRC = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 const SOLUTIONS_BUSINESS_IMG = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=75';
 const SOLUTIONS_EDUCATION_IMG = 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1200&q=75';
-const VIDEO_THUMB_IMG = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1600&q=75';
 const INSIGHT_IMAGES = [
   'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=70',
   'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=70',
@@ -38,8 +37,17 @@ const INSIGHT_IMAGES = [
 const HomePage = () => {
   const intl = useIntl();
   useDocumentTitle(intl.formatMessage(messages.pageTitle));
-  const { data: courses = [], isLoading } = useQuery({ queryKey: ['courses'], queryFn: fetchCourses });
+  const { data: courses = [], isLoading } = useQuery({
+    queryKey: ['courses', 'home', 4],
+    queryFn: () => fetchCoursesList({ pageSize: 4, pageIndex: 0 }),
+  });
+  const { data: promo } = useQuery({
+    queryKey: ['homePromo'],
+    queryFn: fetchHomePromo,
+  });
   const featured = courses.slice(0, 4);
+  const promoVideoSrc = promo?.videoUrl;
+  const promoPoster = promo?.posterUrl;
   const [slide, setSlide] = useState(0);
   const heroSlides = [
     {
@@ -65,14 +73,30 @@ const HomePage = () => {
     },
   ];
   const categories = [
-    { icon: faLaptopCode, title: messages.catAiTitle, body: messages.catAiBody },
-    { icon: faChartLine, title: messages.catDataTitle, body: messages.catDataBody },
-    { icon: faCloud, title: messages.catCloudTitle, body: messages.catCloudBody },
-    { icon: faBriefcase, title: messages.catLeadTitle, body: messages.catLeadBody },
-    { icon: faHeartbeat, title: messages.catHealthTitle, body: messages.catHealthBody },
-    { icon: faShieldAlt, title: messages.catSecTitle, body: messages.catSecBody },
-    { icon: faLeaf, title: messages.catSusTitle, body: messages.catSusBody },
-    { icon: faLightbulb, title: messages.catUxTitle, body: messages.catUxBody },
+    {
+      icon: faLaptopCode, title: messages.catAiTitle, body: messages.catAiBody, to: '/courses?subject=Technology&q=AI',
+    },
+    {
+      icon: faChartLine, title: messages.catDataTitle, body: messages.catDataBody, to: '/courses?subject=Data',
+    },
+    {
+      icon: faCloud, title: messages.catCloudTitle, body: messages.catCloudBody, to: '/courses?subject=Technology&q=Cloud',
+    },
+    {
+      icon: faBriefcase, title: messages.catLeadTitle, body: messages.catLeadBody, to: '/courses?subject=Leadership',
+    },
+    {
+      icon: faHeartbeat, title: messages.catHealthTitle, body: messages.catHealthBody, to: '/courses?subject=Health',
+    },
+    {
+      icon: faShieldAlt, title: messages.catSecTitle, body: messages.catSecBody, to: '/courses?subject=Technology&skills=Security',
+    },
+    {
+      icon: faLeaf, title: messages.catSusTitle, body: messages.catSusBody, to: '/courses?q=Sustainability',
+    },
+    {
+      icon: faLightbulb, title: messages.catUxTitle, body: messages.catUxBody, to: '/courses?subject=Business&q=Product',
+    },
   ];
   const insights = [
     {
@@ -239,11 +263,11 @@ const HomePage = () => {
 
       <section className="tels-promo-light">
         <div className="tels-container">
-          <h2>{intl.formatMessage(messages.promoTitle)}</h2>
+          <h2>{promo?.title || intl.formatMessage(messages.promoTitle)}</h2>
           <div className="tels-promo-light__video">
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-            <video controls preload="metadata" poster={VIDEO_THUMB_IMG} playsInline>
-              <source src={VIDEO_SRC} type="video/mp4" />
+            <video controls preload="metadata" poster={promoPoster} playsInline>
+              {promoVideoSrc && <source src={promoVideoSrc} type="video/mp4" />}
             </video>
           </div>
         </div>
@@ -258,7 +282,7 @@ const HomePage = () => {
           </div>
           <div className="tels-categories">
             {categories.map((c) => (
-              <Link key={c.title.id} to="/courses" className="tels-cat">
+              <Link key={c.title.id} to={c.to} className="tels-cat">
                 <span className="tels-cat__icon"><FontAwesomeIcon icon={c.icon} /></span>
                 <h4>{intl.formatMessage(c.title)}</h4>
                 <p>{intl.formatMessage(c.body)}</p>
@@ -275,13 +299,10 @@ const HomePage = () => {
               <div className="tels-eyebrow">{intl.formatMessage(messages.insightsEyebrow)}</div>
               <h2 className="tels-h2 tels-home__heading">{intl.formatMessage(messages.insightsTitle)}</h2>
             </div>
-            <a href="#insights" className="tels-link">
-              {intl.formatMessage(messages.allInsights)} <FontAwesomeIcon icon={faArrowRight} />
-            </a>
           </div>
           <div className="tels-grid tels-grid--3 tels-home__insights-grid">
             {insights.map((i, idx) => (
-              <a key={i.title.id} href="#insight" className="tels-insight">
+              <article key={i.title.id} className="tels-insight">
                 <div className="tels-insight__img tels-insight__img--photo">
                   <img src={INSIGHT_IMAGES[idx]} alt="" loading="lazy" />
                   <span className={`tels-insight__tag${i.accent ? ' tels-insight__tag--accent' : ''}`}>
@@ -290,7 +311,7 @@ const HomePage = () => {
                 </div>
                 <h4>{intl.formatMessage(i.title)}</h4>
                 <p>{intl.formatMessage(i.body)}</p>
-              </a>
+              </article>
             ))}
           </div>
         </div>

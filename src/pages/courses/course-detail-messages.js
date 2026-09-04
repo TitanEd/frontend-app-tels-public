@@ -56,6 +56,26 @@ const messages = defineMessages({
     defaultMessage: 'Enroll now',
     description: 'Enroll now button',
   },
+  enrollPending: {
+    id: 'public.course-detail.enroll.pending',
+    defaultMessage: 'Enrolling…',
+    description: 'Enroll button pending state',
+  },
+  enrollError: {
+    id: 'public.course-detail.enroll.error',
+    defaultMessage: 'Unable to enroll — try again later.',
+    description: 'Generic enrollment failure message',
+  },
+  enrollDisabled: {
+    id: 'public.course-detail.enroll.disabled',
+    defaultMessage: 'Enrollment is not available',
+    description: 'When can_enroll is false',
+  },
+  alreadyEnrolled: {
+    id: 'public.course-detail.enroll.already',
+    defaultMessage: 'You are enrolled — go to course',
+    description: 'CTA when user is already enrolled',
+  },
   perkSelfPaced: {
     id: 'public.course-detail.enroll.perk-self-paced',
     defaultMessage: 'Self-paced access',

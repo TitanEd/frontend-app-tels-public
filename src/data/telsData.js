@@ -1,12 +1,7 @@
 /**
  * Placeholder course catalog for the public marketing pages (Home, Courses,
- * Course About). Ported from the Lovable "tels-bright" reference design
- * (github.com/Sonu-TitanEd/tels-bright, src/lib/tels-data.ts) so those pages
- * render real-looking content while matching the reference pixel-for-pixel.
- *
- * This is DEMO DATA, not real Open edX course discovery. Wiring the real
- * course discovery/catalog API is separate, larger follow-up work — see
- * docs/branding/TOKEN_MAP.md for how this page system is styled.
+ * Course About). Used as **fallback** when live Open edX / TitanEd APIs fail
+ * or return empty — see `src/data/api/` and `docs/API-INVENTORY.md`.
  */
 const IMG = {
   ai: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=70',
@@ -72,12 +67,7 @@ export const LEVELS = ['Introductory', 'Intermediate', 'Advanced'];
 export const LANGUAGES = ['English', 'Spanish', 'French'];
 export const TYPES = ['Course', 'Professional Certificate', 'Learning Path'];
 export const ORGS = ['TitanEd Academy', 'Eduquest', 'EBC', 'Scapes', 'UFJ'];
-export function fetchCourses() {
-  return new Promise((resolve) => { setTimeout(() => resolve(COURSES), 120); });
-}
-export function fetchCourse(id) {
-  return new Promise((resolve) => { setTimeout(() => resolve(COURSES.find((c) => c.id === id)), 120); });
-}
+/** Mock catalog used when live APIs fail — see `src/data/api/`. */
 export const PARTNER_LOGOS = [
   'https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/microsoft.svg',
   'https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/google.svg',

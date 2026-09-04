@@ -31,6 +31,22 @@
 
 .tels-home__insights-grid {
   margin-top: 1.5rem;
+
+  .tels-insight {
+    cursor: default;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+
+    h4,
+    p {
+      pointer-events: none;
+    }
+  }
 }
 
 .tels-home__cta-icon {
