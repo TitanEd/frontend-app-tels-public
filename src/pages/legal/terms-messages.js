@@ -1,0 +1,37 @@
+import { defineMessages } from '@edx/frontend-platform/i18n';
+
+const messages = defineMessages({
+  docTitle: { id: 'tels.legal.terms.docTitle', defaultMessage: 'Terms of Use — TELS by TitanEd', description: 'Terms page document title' },
+  title: { id: 'tels.legal.terms.title', defaultMessage: 'Terms of Use', description: 'Terms page H1' },
+  intro: { id: 'tels.legal.terms.intro', defaultMessage: 'Placeholder terms for TELS by TitanEd. This page ships with drafting notes only — replace each section with counsel-approved language before publishing.', description: 'Terms page intro' },
+  lastUpdated: { id: 'tels.legal.terms.lastUpdated', defaultMessage: 'TODO', description: 'Terms last-updated placeholder' },
+  seeAlso: { id: 'tels.legal.terms.seeAlso', defaultMessage: 'See also our <privacyLink>Privacy Policy</privacyLink>.', description: 'Terms see-also line' },
+  acceptanceTitle: { id: 'tels.legal.terms.acceptance.title', defaultMessage: '1. Acceptance of these Terms', description: 'Terms section title' },
+  acceptanceBody: { id: 'tels.legal.terms.acceptance.body', defaultMessage: 'TODO: Describe how using the TELS website and courses constitutes acceptance of these terms, and how updates to the terms will be communicated.', description: 'Terms section body' },
+  eligibilityTitle: { id: 'tels.legal.terms.eligibility.title', defaultMessage: '2. Eligibility and Accounts', description: 'Terms section title' },
+  eligibilityBody: { id: 'tels.legal.terms.eligibility.body', defaultMessage: 'TODO: Age requirements, accurate registration information, responsibility for account credentials, and grounds for suspension.', description: 'Terms section body' },
+  contentTitle: { id: 'tels.legal.terms.content.title', defaultMessage: '3. Course Content and Licenses', description: 'Terms section title' },
+  contentBody: { id: 'tels.legal.terms.content.body', defaultMessage: 'TODO: Ownership of course materials, the limited personal-use license granted to learners, and what is prohibited (redistribution, scraping, resale, etc.).', description: 'Terms section body' },
+  conductTitle: { id: 'tels.legal.terms.conduct.title', defaultMessage: '4. Acceptable Use', description: 'Terms section title' },
+  conductBody: { id: 'tels.legal.terms.conduct.body', defaultMessage: 'TODO: Rules for participation in discussions, prohibitions on harassment, cheating, and any activity that disrupts the platform.', description: 'Terms section body' },
+  paymentsTitle: { id: 'tels.legal.terms.payments.title', defaultMessage: '5. Payments, Refunds, and Cancellations', description: 'Terms section title' },
+  paymentsBody: { id: 'tels.legal.terms.payments.body', defaultMessage: 'TODO: Pricing, taxes, billing cadence, refund windows, and cancellation procedures. Reference any regional consumer-protection requirements.', description: 'Terms section body' },
+  thirdPartyTitle: { id: 'tels.legal.terms.thirdParty.title', defaultMessage: '6. Third-Party Services', description: 'Terms section title' },
+  thirdPartyBody: { id: 'tels.legal.terms.thirdParty.body', defaultMessage: 'TODO: How third-party integrations (payment processors, video hosts, analytics providers) are governed by their own terms.', description: 'Terms section body' },
+  ipTitle: { id: 'tels.legal.terms.ip.title', defaultMessage: '7. Intellectual Property', description: 'Terms section title' },
+  ipBody: { id: 'tels.legal.terms.ip.body', defaultMessage: 'TODO: TitanEd trademarks, learner-generated content licenses, and DMCA / copyright-complaint contact details.', description: 'Terms section body' },
+  disclaimersTitle: { id: 'tels.legal.terms.disclaimers.title', defaultMessage: '8. Disclaimers', description: 'Terms section title' },
+  disclaimersBody: { id: 'tels.legal.terms.disclaimers.body', defaultMessage: 'TODO: "As-is" nature of the service, no warranty of continued availability, no guarantee of specific learning outcomes or employment results.', description: 'Terms section body' },
+  liabilityTitle: { id: 'tels.legal.terms.liability.title', defaultMessage: '9. Limitation of Liability', description: 'Terms section title' },
+  liabilityBody: { id: 'tels.legal.terms.liability.body', defaultMessage: 'TODO: Cap on damages and exclusions permitted by applicable law.', description: 'Terms section body' },
+  terminationTitle: { id: 'tels.legal.terms.termination.title', defaultMessage: '10. Termination', description: 'Terms section title' },
+  terminationBody: { id: 'tels.legal.terms.termination.body', defaultMessage: 'TODO: When TELS may suspend or terminate access, and what happens to purchased content after termination.', description: 'Terms section body' },
+  lawTitle: { id: 'tels.legal.terms.law.title', defaultMessage: '11. Governing Law and Disputes', description: 'Terms section title' },
+  lawBody: { id: 'tels.legal.terms.law.body', defaultMessage: 'TODO: Choice of law, venue, and any arbitration or dispute-resolution requirements.', description: 'Terms section body' },
+  changesTitle: { id: 'tels.legal.terms.changes.title', defaultMessage: '12. Changes to these Terms', description: 'Terms section title' },
+  changesBody: { id: 'tels.legal.terms.changes.body', defaultMessage: 'TODO: How and when TELS may amend these terms, and how continued use signals acceptance.', description: 'Terms section body' },
+  contactTitle: { id: 'tels.legal.terms.contact.title', defaultMessage: '13. Contact', description: 'Terms section title' },
+  contactBody: { id: 'tels.legal.terms.contact.body', defaultMessage: 'For questions about these terms, contact us via titaned.com.', description: 'Terms section body' },
+});
+
+export default messages;
