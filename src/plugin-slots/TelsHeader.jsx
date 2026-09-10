@@ -20,6 +20,7 @@ import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { resolvePublicMfeUrl } from './publicUrls';
 import messages from './messages';
+import { formatSubject } from '../i18n/taxonomyMessages';
 import './TelsHeader.scss';
 
 const SUBJECTS = [
@@ -54,11 +55,11 @@ const SUBJECT_ICONS = {
 
 /**
  * Same widget as tutor-tels-theme-plugins TelsHeader (tels_header slot).
- * Template B (Harvard-PLL / tels-mirror): sticky header that's transparent
- * over the home hero (solid on scroll), solid dark on catalog/subject/school
- * pages, white elsewhere — hamburger opens a full-bleed dark "Browse by
- * Subject Area" mega-menu; "View all courses" pill; centered logo. No
- * search bar/logic (product decision).
+ * Template B (Harvard-PLL / tels-mirror): sticky header is the same chrome
+ * on every page — solid dark navy, except transparent over the home hero
+ * until the user scrolls. Hamburger opens a "Browse by Subject Area"
+ * mega-menu; "View all courses" pill (hidden on home); centered logo.
+ * No search bar/logic (product decision).
  */
 const TelsHeader = () => {
   const intl = useIntl();
@@ -75,18 +76,13 @@ const TelsHeader = () => {
   const isPublicMfe = process.env.APP_ID === 'public';
   const pathname = location?.pathname || '';
   const isHome = isPublicMfe && (pathname === '/' || pathname === '');
-  const isCatalog = isPublicMfe
-    && (pathname.startsWith('/catalog') || pathname.startsWith('/subject/') || pathname.startsWith('/school/'));
 
   useEffect(() => {
-    if (!isHome) {
-      return undefined;
-    }
     const onScroll = () => setScrolled(window.scrollY > 10);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [isHome]);
+  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
@@ -95,18 +91,16 @@ const TelsHeader = () => {
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
-  let variant = 'light';
-  if (menuOpen || isCatalog) {
-    variant = 'dark';
-  } else if (isHome) {
-    variant = scrolled ? 'dark' : 'transparent';
-  }
+  // Same chrome on every route: dark navy. Home is the only exception —
+  // transparent over the hero until scroll (or until the mega-menu opens).
+  const overHomeHero = isHome && !scrolled && !menuOpen;
+  const variant = overHomeHero ? 'transparent' : 'dark';
 
   const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
-      <header className={`tels-header ${variant === 'dark' ? 'tels-header--dark' : ''} ${variant === 'light' ? 'tels-header--light' : ''}`}>
+      <header className={`tels-header${variant === 'dark' ? ' tels-header--dark' : ''}`}>
         <div className="tels-container">
           <div className="tels-header__row">
             <div className="tels-header__start">
@@ -114,14 +108,17 @@ const TelsHeader = () => {
                 type="button"
                 className="tels-header__menu-btn"
                 onClick={() => setMenuOpen((open) => !open)}
-                aria-label={intl.formatMessage(messages.menu)}
+                aria-label={intl.formatMessage(menuOpen ? messages.close : messages.menu)}
                 aria-expanded={menuOpen}
+                aria-controls="tels-header-menu"
               >
                 {menuOpen ? <X /> : <Menu />}
               </button>
-              <a href={catalogUrl} className="tels-header__view-all">
-                {intl.formatMessage(messages.viewAllCourses)}
-              </a>
+              {!isHome && (
+                <a href={catalogUrl} className="tels-header__view-all">
+                  {intl.formatMessage(messages.viewAllCourses)}
+                </a>
+              )}
             </div>
 
             <a
@@ -135,8 +132,12 @@ const TelsHeader = () => {
         </div>
       </header>
 
-      {menuOpen && (
-        <div className="tels-header__menu">
+      <div
+        id="tels-header-menu"
+        className={`tels-header__menu${menuOpen ? ' tels-header__menu--open' : ''}`}
+        aria-hidden={!menuOpen}
+      >
+        <div className="tels-header__menu-clip">
           <div className="tels-container tels-header__menu-inner">
             <h2 className="tels-header__menu-title">
               {intl.formatMessage(messages.browseBySubject)}
@@ -150,9 +151,10 @@ const TelsHeader = () => {
                       href={`${catalogUrl}?subject=${encodeURIComponent(subject)}`}
                       className="tels-header__subject-link"
                       onClick={closeMenu}
+                      tabIndex={menuOpen ? 0 : -1}
                     >
                       <SubjectIcon size={20} />
-                      <span>{subject}</span>
+                      <span>{formatSubject(intl, subject)}</span>
                     </a>
                   </li>
                 );
@@ -160,7 +162,7 @@ const TelsHeader = () => {
             </ul>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 };

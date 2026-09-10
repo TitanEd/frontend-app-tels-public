@@ -1,21 +1,26 @@
+import { useIntl } from '@edx/frontend-platform/i18n';
+
 import useDocumentTitle from '../../lib/useDocumentTitle';
+import messages from './layout-messages';
 
 /**
  * Shared dark-header + sticky-TOC + numbered-section layout used by all four
  * legal pages (Accessibility, Privacy Policy, Terms of Use, EEA Privacy
  * Disclosures) — matches tels-mirror's privacy-statement.tsx / terms-use.tsx
- * pattern.
+ * pattern. `title`, `intro`, and each section's `title`/`body` must already
+ * be translated by the caller (message IDs live on each legal page).
  */
 const LegalLayout = ({
   docTitle, title, intro, sections, lastUpdated, seeAlso,
 }) => {
+  const intl = useIntl();
   useDocumentTitle(docTitle);
 
   return (
     <div>
       <div className="tels-legal-header">
         <div className="tels-container">
-          <p className="tels-eyebrow">Legal</p>
+          <p className="tels-eyebrow">{intl.formatMessage(messages.eyebrow)}</p>
           <h1>{title}</h1>
           <p>{intro}</p>
         </div>
@@ -32,7 +37,7 @@ const LegalLayout = ({
             margin: '0 0 0.75rem',
           }}
           >
-            On this page
+            {intl.formatMessage(messages.onThisPage)}
           </p>
           <ul className="tels-toc">
             {sections.map((s) => (
@@ -51,9 +56,7 @@ const LegalLayout = ({
             marginBottom: '2rem',
           }}
           >
-            Last updated:
-            {' '}
-            {lastUpdated}
+            {intl.formatMessage(messages.lastUpdated, { date: lastUpdated })}
           </p>
           {sections.map((s) => (
             <section key={s.id} id={s.id} className="tels-legal__block">

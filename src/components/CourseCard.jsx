@@ -1,7 +1,15 @@
 import { Link } from 'react-router-dom';
+import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   BookOpen, MapPin, Monitor, Users,
 } from 'lucide-react';
+
+import taxonomyMessages, {
+  formatAvailability,
+  formatModality,
+  formatSubject,
+} from '../i18n/taxonomyMessages';
+import messages from './course-card-messages';
 
 const modalityIcon = (modality) => {
   if (modality === 'In-Person') { return MapPin; }
@@ -10,7 +18,12 @@ const modalityIcon = (modality) => {
 };
 
 const CourseCard = ({ course }) => {
+  const intl = useIntl();
   const ModalityIcon = modalityIcon(course.modality);
+  const duration = course.duration.replace(/\s*long$/i, '');
+  const price = course.price === 0
+    ? intl.formatMessage(taxonomyMessages.freeStar)
+    : intl.formatNumber(course.price, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
   return (
     <article className="tels-course-card">
@@ -20,12 +33,12 @@ const CourseCard = ({ course }) => {
       <div className="tels-course-card__body">
         <div className="tels-course-card__eyebrow">
           <BookOpen size={13} />
-          <Link to={`/subject/${course.subjectSlug}`}>{course.subject}</Link>
+          <Link to={`/subject/${course.subjectSlug}`}>{formatSubject(intl, course.subject)}</Link>
           <span>&bull;</span>
           <span>
             <ModalityIcon size={13} />
             {' '}
-            {course.modality}
+            {formatModality(intl, course.modality)}
           </span>
         </div>
         <h3 className="tels-course-card__title">
@@ -33,9 +46,9 @@ const CourseCard = ({ course }) => {
         </h3>
         <p className="tels-course-card__desc">{course.description}</p>
         <div className="tels-course-card__meta">
-          <span className="tels-course-card__price">{course.price === 0 ? 'FREE*' : `$${course.price.toLocaleString()}`}</span>
-          <span>{course.duration.replace(/\s*long$/, '').toUpperCase()}</span>
-          <span>{course.availability.toUpperCase()}</span>
+          <span className="tels-course-card__price">{price}</span>
+          <span>{intl.formatMessage(messages.durationLong, { duration })}</span>
+          <span>{formatAvailability(intl, course.availability)}</span>
         </div>
       </div>
     </article>

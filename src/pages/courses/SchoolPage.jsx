@@ -1,6 +1,8 @@
 import { Navigate, useParams } from 'react-router-dom';
+import { useIntl } from '@edx/frontend-platform/i18n';
 
 import { SCHOOLS } from '../../data/telsCourses';
+import catalogMessages from './catalog-messages';
 import CatalogPage from './CatalogPage';
 
 /**
@@ -9,6 +11,7 @@ import CatalogPage from './CatalogPage';
  * inside CatalogView, once again in this wrapper. Fixed to render once.)
  */
 const SchoolPage = () => {
+  const intl = useIntl();
   const { slug } = useParams();
   const school = SCHOOLS.find((s) => s.slug === slug);
 
@@ -29,7 +32,10 @@ const SchoolPage = () => {
           <h1 style={{ margin: 0 }}>{school.name}</h1>
         </div>
       </div>
-      <CatalogPage title={`${school.name} Courses`} lockedSchool={school.slug} />
+      <CatalogPage
+        title={intl.formatMessage(catalogMessages.schoolCourses, { school: school.name })}
+        lockedSchool={school.slug}
+      />
     </>
   );
 };

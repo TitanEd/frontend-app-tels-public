@@ -1,7 +1,20 @@
 import { useState } from 'react';
+import { useIntl } from '@edx/frontend-platform/i18n';
 
-const EmailSignup = () => {
+import messages from './email-signup-messages';
+
+const EmailSignup = ({
+  title,
+  subtitle,
+  submitLabel,
+  variant,
+}) => {
+  const intl = useIntl();
   const [sent, setSent] = useState(false);
+
+  const heading = title ?? intl.formatMessage(messages.title);
+  const sub = subtitle ?? intl.formatMessage(messages.subtitle);
+  const submit = submitLabel ?? intl.formatMessage(messages.submit);
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -10,16 +23,22 @@ const EmailSignup = () => {
   };
 
   return (
-    <section className="tels-email-signup">
+    <section className={['tels-email-signup', variant === 'light' && 'tels-email-signup--light'].filter(Boolean).join(' ')}>
       <div className="tels-container">
-        <h2 className="tels-email-signup__title">Stay in the loop</h2>
-        <p className="tels-email-signup__subtitle">Get new courses and program updates in your inbox.</p>
+        <h2 className="tels-email-signup__title">{heading}</h2>
+        <p className="tels-email-signup__subtitle">{sub}</p>
         {sent ? (
-          <p className="tels-email-signup__success">Thanks — you&rsquo;re on the list.</p>
+          <p className="tels-email-signup__success">{intl.formatMessage(messages.success)}</p>
         ) : (
           <form className="tels-email-signup__form" onSubmit={onSubmit}>
-            <input type="email" name="email" placeholder="you@example.com" required aria-label="Email address" />
-            <button type="submit">Subscribe</button>
+            <input
+              type="email"
+              name="email"
+              placeholder={intl.formatMessage(messages.emailPlaceholder)}
+              required
+              aria-label={intl.formatMessage(messages.emailAria)}
+            />
+            <button type="submit">{submit}</button>
           </form>
         )}
       </div>

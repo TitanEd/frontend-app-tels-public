@@ -21,6 +21,11 @@ const messages = defineMessages({
     defaultMessage: 'Browse by Subject Area',
     description: 'Subject mega-menu heading',
   },
+  close: {
+    id: 'tels.header.mobile.close',
+    defaultMessage: 'Close menu',
+    description: 'Hamburger menu close aria label',
+  },
 });
 
 export default messages;

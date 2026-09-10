@@ -2,12 +2,20 @@ import {
   useEffect, useMemo, useRef, useState,
 } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useIntl } from '@edx/frontend-platform/i18n';
 import { ChevronDown, X } from 'lucide-react';
 
 import CourseCard from '../../components/CourseCard';
 import EmailSignup from '../../components/EmailSignup';
 import { COURSES, SUBJECTS, SCHOOLS } from '../../data/telsCourses';
+import taxonomyMessages, {
+  formatDifficulty,
+  formatDurationBucket,
+  formatModality,
+  formatSubject,
+} from '../../i18n/taxonomyMessages';
 import useDocumentTitle from '../../lib/useDocumentTitle';
+import messages from './catalog-messages';
 
 const DURATION_BUCKETS = [
   { label: '0-1 weeks', min: 0, max: 1 },
@@ -68,13 +76,15 @@ const Dropdown = ({ label, active, children }) => {
         aria-expanded={open}
       >
         <span>{label}</span>
-        <ChevronDown size={13} style={{ transform: open ? 'rotate(180deg)' : undefined }} />
+        <ChevronDown size={13} />
       </button>
-      {open && (
+      <div className={`tels-filter-panel-clip${open ? ' is-open' : ''}`} aria-hidden={!open}>
         <div className="tels-filter-panel">
-          {children(() => setOpen(false))}
+          <div className="tels-filter-panel__inner">
+            {children(() => setOpen(false))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -96,7 +106,13 @@ const RadioOption = ({ checked, onChange, children }) => (
 );
 
 const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
-  useDocumentTitle(title ? `${title} — TELS by TitanEd` : 'Courses — TELS by TitanEd');
+  const intl = useIntl();
+  const heading = title || intl.formatMessage(messages.heading);
+  useDocumentTitle(
+    title
+      ? intl.formatMessage(messages.docTitleNamed, { title })
+      : intl.formatMessage(messages.docTitle),
+  );
 
   const [searchParams, setSearchParams] = useSearchParams();
   const search = useMemo(() => ({
@@ -135,33 +151,45 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
 
   const activeChips = [];
   if (search.keywords) { activeChips.push({ label: `"${search.keywords}"`, onRemove: () => update({ keywords: undefined }) }); }
-  (search.subject || '').split(',').filter(Boolean).forEach((s) => activeChips.push({ label: s, onRemove: () => toggleCsv('subject', s) }));
+  (search.subject || '').split(',').filter(Boolean).forEach((s) => activeChips.push({ label: formatSubject(intl, s), onRemove: () => toggleCsv('subject', s) }));
   (search.school || '').split(',').filter(Boolean).forEach((s) => {
     const name = SCHOOLS.find((x) => x.slug === s)?.name || s;
     activeChips.push({ label: name, onRemove: () => toggleCsv('school', s) });
   });
   if (search.price) {
-    activeChips.push({ label: search.price, onRemove: () => update({ price: undefined }) });
+    const priceLabel = search.price === 'Free'
+      ? intl.formatMessage(taxonomyMessages.free)
+      : intl.formatMessage(taxonomyMessages.paid);
+    activeChips.push({ label: priceLabel, onRemove: () => update({ price: undefined }) });
   }
   if (search.duration) {
-    activeChips.push({ label: search.duration, onRemove: () => update({ duration: undefined }) });
+    activeChips.push({
+      label: formatDurationBucket(intl, search.duration),
+      onRemove: () => update({ duration: undefined }),
+    });
   }
   if (search.difficulty) {
-    activeChips.push({ label: search.difficulty, onRemove: () => update({ difficulty: undefined }) });
+    activeChips.push({
+      label: formatDifficulty(intl, search.difficulty),
+      onRemove: () => update({ difficulty: undefined }),
+    });
   }
   if (search.modality) {
-    activeChips.push({ label: search.modality, onRemove: () => update({ modality: undefined }) });
+    activeChips.push({
+      label: formatModality(intl, search.modality),
+      onRemove: () => update({ modality: undefined }),
+    });
   }
 
   return (
     <>
       <section className="tels-catalog-header">
         <div className="tels-container">
-          <h1>{title ?? 'Courses'}</h1>
+          <h1>{heading}</h1>
         </div>
         <div className="tels-filter-bar">
           <div className="tels-container" style={{ display: 'flex', flexWrap: 'wrap' }}>
-            <Dropdown label="Subject Area" active={!!effective.subject}>
+            <Dropdown label={intl.formatMessage(messages.filterSubject)} active={!!effective.subject}>
               {() => SUBJECTS.map((s) => (
                 <CheckOption
                   key={s}
@@ -169,35 +197,39 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
                   disabled={lockedSubject === s}
                   onChange={() => toggleCsv('subject', s)}
                 >
-                  {s}
+                  {formatSubject(intl, s)}
                 </CheckOption>
               ))}
             </Dropdown>
-            <Dropdown label="Price" active={!!search.price}>
+            <Dropdown label={intl.formatMessage(messages.filterPrice)} active={!!search.price}>
               {() => (
                 <>
                   <RadioOption checked={search.price === undefined} onChange={() => update({ price: undefined })}>
-                    Any
+                    {intl.formatMessage(taxonomyMessages.any)}
                   </RadioOption>
                   <RadioOption checked={search.price === 'Free'} onChange={() => update({ price: 'Free' })}>
-                    Free
+                    {intl.formatMessage(taxonomyMessages.free)}
                   </RadioOption>
                   <RadioOption checked={search.price === 'Paid'} onChange={() => update({ price: 'Paid' })}>
-                    Paid
+                    {intl.formatMessage(taxonomyMessages.paid)}
                   </RadioOption>
                 </>
               )}
             </Dropdown>
-            <Dropdown label="Start Date">
+            <Dropdown label={intl.formatMessage(messages.filterStartDate)}>
               {() => (
                 <>
-                  <RadioOption checked onChange={() => {}}>Any</RadioOption>
-                  <RadioOption checked={false} onChange={() => {}}>Available now</RadioOption>
-                  <RadioOption checked={false} onChange={() => {}}>Starts soon</RadioOption>
+                  <RadioOption checked onChange={() => {}}>{intl.formatMessage(taxonomyMessages.any)}</RadioOption>
+                  <RadioOption checked={false} onChange={() => {}}>
+                    {intl.formatMessage(taxonomyMessages.availableNow)}
+                  </RadioOption>
+                  <RadioOption checked={false} onChange={() => {}}>
+                    {intl.formatMessage(taxonomyMessages.startsSoon)}
+                  </RadioOption>
                 </>
               )}
             </Dropdown>
-            <Dropdown label="Schools" active={!!effective.school}>
+            <Dropdown label={intl.formatMessage(messages.filterSchools)} active={!!effective.school}>
               {() => SCHOOLS.map((s) => (
                 <CheckOption
                   key={s.slug}
@@ -209,11 +241,11 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
                 </CheckOption>
               ))}
             </Dropdown>
-            <Dropdown label="Duration" active={!!search.duration}>
+            <Dropdown label={intl.formatMessage(messages.filterDuration)} active={!!search.duration}>
               {() => (
                 <>
                   <RadioOption checked={!search.duration} onChange={() => update({ duration: undefined })}>
-                    Any
+                    {intl.formatMessage(taxonomyMessages.any)}
                   </RadioOption>
                   {DURATION_BUCKETS.map((b) => (
                     <RadioOption
@@ -221,35 +253,35 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
                       checked={search.duration === b.label}
                       onChange={() => update({ duration: b.label })}
                     >
-                      {b.label}
+                      {formatDurationBucket(intl, b.label)}
                     </RadioOption>
                   ))}
                 </>
               )}
             </Dropdown>
-            <Dropdown label="Difficulty" active={!!search.difficulty}>
+            <Dropdown label={intl.formatMessage(messages.filterDifficulty)} active={!!search.difficulty}>
               {() => (
                 <>
                   <RadioOption checked={!search.difficulty} onChange={() => update({ difficulty: undefined })}>
-                    Any
+                    {intl.formatMessage(taxonomyMessages.any)}
                   </RadioOption>
                   {DIFFICULTIES.map((d) => (
                     <RadioOption key={d} checked={search.difficulty === d} onChange={() => update({ difficulty: d })}>
-                      {d}
+                      {formatDifficulty(intl, d)}
                     </RadioOption>
                   ))}
                 </>
               )}
             </Dropdown>
-            <Dropdown label="Modality" active={!!search.modality}>
+            <Dropdown label={intl.formatMessage(messages.filterModality)} active={!!search.modality}>
               {() => (
                 <>
                   <RadioOption checked={!search.modality} onChange={() => update({ modality: undefined })}>
-                    Any
+                    {intl.formatMessage(taxonomyMessages.any)}
                   </RadioOption>
                   {MODALITIES.map((m) => (
                     <RadioOption key={m} checked={search.modality === m} onChange={() => update({ modality: m })}>
-                      {m}
+                      {formatModality(intl, m)}
                     </RadioOption>
                   ))}
                 </>
@@ -263,10 +295,10 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
         <div className="tels-container">
           <div className="tels-results-head">
             <h2>
-              {results.length}
-              {' '}
-              results
-              {activeChips.length > 0 ? ' for' : ''}
+              {intl.formatMessage(
+                activeChips.length > 0 ? messages.resultsFor : messages.results,
+                { count: results.length },
+              )}
             </h2>
           </div>
           {activeChips.length > 0 && (
@@ -274,16 +306,22 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
               {activeChips.map((c) => (
                 <span key={c.label} className="tels-chip">
                   {c.label}
-                  <button type="button" onClick={c.onRemove} aria-label={`Remove ${c.label} filter`}>
+                  <button
+                    type="button"
+                    onClick={c.onRemove}
+                    aria-label={intl.formatMessage(messages.removeFilter, { label: c.label })}
+                  >
                     <X size={13} />
                   </button>
                 </span>
               ))}
-              <button type="button" className="tels-clear-filters" onClick={clearAll}>Clear all filters</button>
+              <button type="button" className="tels-clear-filters" onClick={clearAll}>
+                {intl.formatMessage(messages.clearFilters)}
+              </button>
             </div>
           )}
           {results.length === 0 ? (
-            <div className="tels-empty">No courses matched your search.</div>
+            <div className="tels-empty">{intl.formatMessage(messages.empty)}</div>
           ) : (
             <div className="tels-grid tels-grid--3">
               {results.map((c) => <CourseCard key={c.slug} course={c} />)}

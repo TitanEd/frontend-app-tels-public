@@ -25,18 +25,12 @@ export const localIndigoConfig = {
   INDIGO_COURSES_URL: withBase('/catalog'),
   INDIGO_ABOUT_URL: withBase('/about'),
   INDIGO_CONTACT_URL: withBase('/contact'),
-  INDIGO_ACCESSIBILITY_URL: withBase('/accessibility'),
   INDIGO_PRIVACY_URL: withBase('/privacy'),
   INDIGO_TERMS_URL: withBase('/terms'),
-  INDIGO_EEA_URL: withBase('/eea-privacy-disclosures'),
-  // Matches the real pll.harvard.edu <footer class="site-footer"> exactly —
-  // the "Footer Links" nav is Accessibility / Privacy Policy / Terms of Use /
-  // EEA Privacy Disclosures ONLY (no About/Contact, no social icons, no
-  // contact block — the real footer doesn't have those).
   INDIGO_FOOTER_EXPLORE_LINKS: [
-    { titleKey: 'accessibility', url: '/accessibility' },
     { titleKey: 'privacy', url: '/privacy' },
     { titleKey: 'terms', url: '/terms' },
-    { titleKey: 'eea', url: '/eea-privacy-disclosures' },
+    { titleKey: 'about', url: '/about' },
+    { titleKey: 'contact', url: '/contact' },
   ],
 };

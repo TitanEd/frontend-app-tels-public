@@ -23,7 +23,7 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<PageWrap><HomePage /></PageWrap>} />
     <Route path="/home" element={<Navigate to="/" replace />} />
-    <Route path="/catalog" element={<PageWrap><CatalogPage title="Courses" /></PageWrap>} />
+    <Route path="/catalog" element={<PageWrap><CatalogPage /></PageWrap>} />
     <Route path="/courses" element={<Navigate to="/catalog" replace />} />
     <Route path="/subject/:slug" element={<PageWrap><SubjectPage /></PageWrap>} />
     <Route path="/school/:slug" element={<PageWrap><SchoolPage /></PageWrap>} />

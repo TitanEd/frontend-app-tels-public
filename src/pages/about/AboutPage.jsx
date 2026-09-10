@@ -1,22 +1,25 @@
 import { Link } from 'react-router-dom';
+import { useIntl } from '@edx/frontend-platform/i18n';
 
 import { SCHOOLS } from '../../data/telsCourses';
 import useDocumentTitle from '../../lib/useDocumentTitle';
-
-const STATS = [
-  ['2,000,000+', 'LEARNERS'],
-  ['500+', 'COURSES'],
-  ['100+', 'COUNTRIES'],
-];
+import messages from './messages';
 
 const AboutPage = () => {
-  useDocumentTitle('About Us — TELS by TitanEd');
+  const intl = useIntl();
+  useDocumentTitle(intl.formatMessage(messages.docTitle));
+
+  const stats = [
+    ['2,000,000+', messages.learners],
+    ['500+', messages.courses],
+    ['100+', messages.countries],
+  ];
 
   return (
     <div>
       <div className="tels-page-header">
         <div className="tels-container">
-          <h1>About TELS</h1>
+          <h1>{intl.formatMessage(messages.heading)}</h1>
         </div>
       </div>
 
@@ -33,26 +36,17 @@ const AboutPage = () => {
           gap: '1.25rem',
         }}
       >
-        <p>
-          TELS — TitanEd Learning Services — is TitanEd&rsquo;s professional and lifelong
-          learning platform. We partner with academic and industry organizations to deliver
-          rigorous, accessible courses across programming, business, data science,
-          humanities, and more.
-        </p>
-        <p>
-          Our courses are built on modern open infrastructure and designed for working
-          professionals who want to grow their craft, teachers who want to improve their
-          practice, and lifelong learners who want to keep learning.
-        </p>
-        <p>TitanEd is headquartered in Gurugram, India, and works with partners around the world.</p>
+        <p>{intl.formatMessage(messages.p1)}</p>
+        <p>{intl.formatMessage(messages.p2)}</p>
+        <p>{intl.formatMessage(messages.p3)}</p>
       </div>
 
       <section className="tels-stats-band tels-stats-band--dark">
         <div className="tels-container tels-stats">
-          {STATS.map(([n, l]) => (
-            <div key={l}>
+          {stats.map(([n, label]) => (
+            <div key={label.id}>
               <p className="tels-stats__n">{n}</p>
-              <p className="tels-stats__l">{l}</p>
+              <p className="tels-stats__l">{intl.formatMessage(label)}</p>
             </div>
           ))}
         </div>
@@ -60,7 +54,9 @@ const AboutPage = () => {
 
       <section className="tels-section">
         <div className="tels-container">
-          <h2 className="tels-section-header__title" style={{ marginBottom: '1.5rem' }}>Organizations</h2>
+          <h2 className="tels-section-header__title" style={{ marginBottom: '1.5rem' }}>
+            {intl.formatMessage(messages.organizations)}
+          </h2>
           <div className="tels-orgs-grid--cards">
             {SCHOOLS.map((s) => (
               <Link
@@ -81,10 +77,14 @@ const AboutPage = () => {
 
       <section className="tels-cta-band">
         <div className="tels-container">
-          <h2>Ready to keep learning?</h2>
+          <h2>{intl.formatMessage(messages.ready)}</h2>
           <div className="tels-cta-band__actions">
-            <Link to="/catalog" className="tels-btn tels-btn--primary">Explore courses</Link>
-            <Link to="/contact" className="tels-btn tels-btn--outline">Contact us</Link>
+            <Link to="/catalog" className="tels-btn tels-btn--primary">
+              {intl.formatMessage(messages.exploreCourses)}
+            </Link>
+            <Link to="/contact" className="tels-btn tels-btn--outline">
+              {intl.formatMessage(messages.contactUs)}
+            </Link>
           </div>
         </div>
       </section>

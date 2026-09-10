@@ -1,17 +1,66 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { useIntl } from '@edx/frontend-platform/i18n';
+import {
+  Calendar,
+  CircleHelp,
+  Clock,
+  Gauge,
+  GraduationCap,
+  Landmark,
+  Monitor,
+  Signal,
+  Tag,
+  Wallet,
+} from 'lucide-react';
 
 import CourseCard from '../../components/CourseCard';
 import EmailSignup from '../../components/EmailSignup';
+import emailMessages from '../../components/email-signup-messages';
 import { COURSES, SCHOOLS } from '../../data/telsCourses';
+import taxonomyMessages, {
+  formatDifficulty,
+  formatModality,
+  formatSubject,
+  formatAvailability,
+} from '../../i18n/taxonomyMessages';
 import useDocumentTitle from '../../lib/useDocumentTitle';
+import messages from './course-detail-messages';
 
 const initials = (name) => name.split(' ').map((n) => n[0]).join('').slice(0, 2);
 
+const Fact = ({ icon: Icon, label, children }) => (
+  <div className="tels-course-fact">
+    <div className="tels-course-fact__label">
+      <Icon size={16} aria-hidden="true" />
+      <span>{label}</span>
+    </div>
+    <div className="tels-course-fact__value">{children}</div>
+  </div>
+);
+
+const LearnMore = ({ title, href = '#enroll', className = 'tels-btn tels-btn--outline' }) => {
+  const intl = useIntl();
+  return (
+    <a
+      className={className}
+      href={href}
+      aria-label={intl.formatMessage(messages.learnMoreAria, { title })}
+    >
+      {intl.formatMessage(messages.learnMore)}
+    </a>
+  );
+};
+
 const CourseDetailPage = () => {
+  const intl = useIntl();
   const { slug } = useParams();
   const course = COURSES.find((c) => c.slug === slug);
 
-  useDocumentTitle(course ? `${course.title} — TELS by TitanEd` : 'Course — TELS by TitanEd');
+  useDocumentTitle(
+    course
+      ? intl.formatMessage(messages.docTitle, { title: course.title })
+      : intl.formatMessage(messages.docTitleFallback),
+  );
 
   if (!course) {
     return <Navigate to="/catalog" replace />;
@@ -19,131 +68,162 @@ const CourseDetailPage = () => {
 
   const school = SCHOOLS.find((s) => s.slug === course.schoolSlug);
   const related = COURSES.filter((c) => c.subject === course.subject && c.slug !== course.slug).slice(0, 3);
+  const priceLabel = course.price === 0
+    ? intl.formatMessage(taxonomyMessages.freeStar)
+    : intl.formatNumber(course.price, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const certPrice = course.price === 0 ? null : priceLabel;
 
   return (
-    <article>
-      <div className="tels-page-header">
-        <div className="tels-container">
-          <div className="tels-breadcrumb">
-            <Link to="/catalog">Courses</Link>
-            <span className="tels-breadcrumb__sep">/</span>
-            <Link to={`/subject/${course.subjectSlug}`}>{course.subject}</Link>
-          </div>
+    <article className="tels-course-about">
+      <div className="tels-container tels-course-about__layout">
+        <div className="tels-course-about__hero-band" aria-hidden="true" />
+
+        <header className="tels-course-hero">
           <h1>{course.title}</h1>
-          <p style={{
-            marginTop: '1rem', maxWidth: '48rem', color: 'var(--pgn-color-text-secondary)', lineHeight: 1.6,
-          }}
-          >{course.description}
-          </p>
+          <p className="tels-course-hero__teaser">{course.description}</p>
+          <LearnMore title={course.title} className="tels-btn tels-btn--inverse tels-course-hero__cta" />
+        </header>
 
-          <div className="tels-course-meta">
-            <span style={{ fontWeight: 600, color: 'var(--pgn-color-text-base)' }}>{course.availability}</span>
-            <span className="tels-course-meta__price">{course.price === 0 ? 'Free*' : `$${course.price.toLocaleString()}`}</span>
-            <span>{course.modality}</span>
-            <a href="#help" className="tels-link">Help me choose</a>
-          </div>
-
-          <div style={{
-            marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem',
-          }}
-          >
-            <a href="#enroll" className="tels-btn tels-btn--primary">Enroll now</a>
-            <a href="#learn-more" className="tels-btn tels-btn--outline">Learn More</a>
-          </div>
-        </div>
-      </div>
-
-      <div className="tels-container tels-detail-grid" style={{ paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-          <section>
-            <h2 className="tels-detail-heading">What you&rsquo;ll learn</h2>
-            <ul style={{ color: 'var(--pgn-color-text-secondary)', paddingLeft: '1.25rem' }}>
-              {course.learn.map((l) => <li key={l} style={{ marginBottom: '0.5rem' }}>{l}</li>)}
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="tels-detail-heading">Course description</h2>
-            <p style={{ color: 'var(--pgn-color-text-secondary)', lineHeight: 1.6 }}>{course.longDescription}</p>
-          </section>
-
-          <section>
-            <h2 className="tels-detail-heading">Instructors</h2>
-            <div className="tels-grid tels-grid--2">
-              {course.instructors.map((i) => (
-                <div key={i.name} className="tels-instructor-card">
-                  <div className="tels-instructor-card__avatar">{initials(i.name)}</div>
-                  <div>
-                    <p style={{ margin: 0, fontWeight: 600 }}>{i.name}</p>
-                    <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--pgn-color-chrome-text-muted)' }}>{i.title}</p>
-                  </div>
-                </div>
-              ))}
+        <div className="tels-course-extras">
+          <div className="tels-course-extras__row">
+            <div className="tels-course-extras__item">
+              <Calendar size={16} aria-hidden="true" />
+              <span className="sr-only">{intl.formatMessage(messages.duration)}</span>
+              <span>{formatAvailability(intl, course.availability)}</span>
             </div>
-          </section>
-
-          {school && (
-            <section>
-              <h2 className="tels-detail-heading">Associated Schools</h2>
-              <Link to={`/school/${school.slug}`} className="tels-instructor-card" style={{ maxWidth: '28rem' }}>
-                {school.logo
-                  ? <img src={school.logo} alt="" style={{ height: '2.5rem', objectFit: 'contain' }} />
-                  : <span style={{ fontWeight: 700 }}>{school.name}</span>}
-                <span style={{ fontWeight: 600 }}>{school.name}</span>
+            <div className="tels-course-extras__item tels-course-extras__item--price">
+              <Wallet size={16} aria-hidden="true" />
+              <span className="sr-only">{intl.formatMessage(messages.price)}</span>
+              <span>{priceLabel}</span>
+            </div>
+            <div className="tels-course-extras__item">
+              <GraduationCap size={16} aria-hidden="true" />
+              <span className="sr-only">{intl.formatMessage(messages.modality)}</span>
+              <span>{formatModality(intl, course.modality)}</span>
+              <Link
+                to="/contact"
+                className="tels-course-extras__help"
+                title={intl.formatMessage(messages.helpChoose)}
+              >
+                <CircleHelp size={16} aria-hidden="true" />
+                <span className="sr-only">{intl.formatMessage(messages.helpChoose)}</span>
               </Link>
-            </section>
-          )}
+            </div>
+          </div>
         </div>
 
-        <aside className="tels-detail-aside--sticky">
-          <div className="tels-details-card">
-            <h3>Details</h3>
-            <dl>
-              {[
-                ['Duration', course.duration],
-                ['Time Commitment', course.timeCommitment],
-                ['Pace', course.pace],
-                ['Subject', course.subject],
-                ['Course Language', course.language],
-                ['Video transcript', course.transcript],
-                ['Difficulty', course.difficulty],
-                ['Platform', 'TELS / Open edX'],
-              ].map(([k, v]) => (
-                <div key={k} className="tels-details-row">
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </div>
-              ))}
-            </dl>
-            <p style={{
-              fontSize: '0.75rem', color: 'var(--pgn-color-chrome-text-muted)', margin: '1rem 0 0',
-            }}
-            >
-              Topics
-            </p>
-            <div className="tels-topic-chips">
-              {course.topics.map((t) => (
-                <Link key={t} to={`/catalog?keywords=${encodeURIComponent(t)}`} className="tels-topic-chip">
-                  {t}
-                </Link>
-              ))}
-            </div>
+        <aside className="tels-course-facts">
+          <div className="tels-course-facts__media">
+            <img src={course.image} alt="" />
           </div>
+          <div className="tels-course-facts__list">
+            <Fact icon={Clock} label={intl.formatMessage(messages.timeCommitment)}>{course.timeCommitment}</Fact>
+            <Fact icon={Gauge} label={intl.formatMessage(messages.pace)}>{course.pace}</Fact>
+            <Fact icon={GraduationCap} label={intl.formatMessage(messages.subject)}>
+              <Link to={`/subject/${course.subjectSlug}`}>{formatSubject(intl, course.subject)}</Link>
+            </Fact>
+            <Fact icon={Signal} label={intl.formatMessage(messages.difficulty)}>
+              {formatDifficulty(intl, course.difficulty)}
+            </Fact>
+            <Fact icon={Landmark} label={intl.formatMessage(messages.credit)}>
+              {intl.formatMessage(messages.auditFree)}
+              {certPrice ? (
+                <>
+                  <br />
+                  {intl.formatMessage(messages.verifiedCert, { price: certPrice })}
+                </>
+              ) : null}
+            </Fact>
+            <Fact icon={Monitor} label={intl.formatMessage(messages.platform)}>
+              {intl.formatMessage(messages.platformValue)}
+            </Fact>
+            <Fact icon={Tag} label={intl.formatMessage(messages.topics)}>
+              <div className="tels-topic-chips">
+                {course.topics.map((t) => (
+                  <Link key={t} to={`/catalog?keywords=${encodeURIComponent(t)}`} className="tels-topic-chip">
+                    {t}
+                  </Link>
+                ))}
+              </div>
+            </Fact>
+          </div>
+          {school && (
+            <div className="tels-course-facts__schools">
+              <p className="tels-course-facts__schools-label">
+                {intl.formatMessage(messages.associatedSchools)}
+              </p>
+              <Link to={`/school/${school.slug}`} className="tels-course-school">
+                {school.logo ? <img src={school.logo} alt="" /> : null}
+                <span>{school.name}</span>
+              </Link>
+            </div>
+          )}
         </aside>
+
+        <div className="tels-course-about__primary">
+          <div className="tels-course-body">
+            <section>
+              <h2 className="tels-detail-heading">{intl.formatMessage(messages.whatYoullLearn)}</h2>
+              <ul className="tels-course-learn">
+                {course.learn.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+              <LearnMore title={course.title} />
+            </section>
+
+            <section>
+              <h2 className="tels-detail-heading">{intl.formatMessage(messages.courseDescription)}</h2>
+              <p className="tels-course-body__copy">{course.longDescription}</p>
+              <LearnMore title={course.title} />
+            </section>
+          </div>
+        </div>
       </div>
 
-      {related.length > 0 && (
-        <section className="tels-section" style={{ borderTop: '1px solid var(--pgn-color-chrome-border)' }}>
-          <div className="tels-container">
-            <h2 className="tels-section-header__title" style={{ marginBottom: '1.5rem' }}>You may also like</h2>
-            <div className="tels-grid tels-grid--3">
-              {related.map((c) => <CourseCard key={c.slug} course={c} />)}
-            </div>
+      <section className="tels-course-faculty">
+        <div className="tels-container">
+          <h2 className="tels-detail-heading">{intl.formatMessage(messages.instructors)}</h2>
+          <div className="tels-course-faculty__grid">
+            {course.instructors.map((instructor) => (
+              <article key={instructor.name} className="tels-instructor-card">
+                <div className="tels-instructor-card__avatar" aria-hidden="true">
+                  {initials(instructor.name)}
+                </div>
+                <h3>{instructor.name}</h3>
+                <p>{instructor.title}</p>
+              </article>
+            ))}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
-      <EmailSignup />
+      <section className="tels-enroll-banner" id="enroll">
+        <div className="tels-container tels-enroll-banner__inner">
+          <p className="tels-enroll-banner__stat">{intl.formatMessage(messages.enrollNow)}</p>
+          <LearnMore title={course.title} className="tels-btn tels-btn--inverse" />
+        </div>
+      </section>
+
+      <div className="tels-course-about__more">
+        {related.length > 0 && (
+          <section className="tels-section tels-section--tight">
+            <div className="tels-container">
+              <h2 className="tels-section-header__title tels-course-related-title">
+                {intl.formatMessage(messages.youMayAlsoLike)}
+              </h2>
+              <div className="tels-grid tels-grid--3">
+                {related.map((item) => <CourseCard key={item.slug} course={item} />)}
+              </div>
+            </div>
+          </section>
+        )}
+
+        <EmailSignup
+          title={intl.formatMessage(emailMessages.joinListTitle)}
+          subtitle={intl.formatMessage(emailMessages.joinListSubtitle)}
+          submitLabel={intl.formatMessage(emailMessages.submit)}
+          variant="light"
+        />
+      </div>
     </article>
   );
 };

@@ -5,11 +5,22 @@ import messages from './footer-messages';
 import './IndigoFooter.scss';
 
 const DEFAULT_LINKS = [
-  { titleKey: 'accessibility', url: '/accessibility' },
   { titleKey: 'privacy', url: '/privacy' },
   { titleKey: 'terms', url: '/terms' },
-  { titleKey: 'eea', url: '/eea-privacy-disclosures' },
+  { titleKey: 'about', url: '/about' },
+  { titleKey: 'contact', url: '/contact' },
 ];
+
+const HIDDEN_FOOTER_KEYS = new Set(['accessibility', 'eea']);
+const HIDDEN_FOOTER_PATHS = ['/accessibility', '/eea-privacy-disclosures'];
+
+const isHiddenFooterLink = (link) => {
+  if (HIDDEN_FOOTER_KEYS.has(link.titleKey)) {
+    return true;
+  }
+  const url = String(link.url || '');
+  return HIDDEN_FOOTER_PATHS.some((path) => url === path || url.endsWith(path));
+};
 
 /**
  * Same widget as tutor-tels-theme-plugins IndigoFooter (indigo_footer slot).
@@ -29,7 +40,8 @@ const IndigoFooter = () => {
 
   const logoUrl = config.LOGO_URL || config.LOGO_WHITE_URL || `${config.LMS_BASE_URL}/theming/asset/images/logo.png`;
 
-  const links = config.INDIGO_FOOTER_EXPLORE_LINKS || DEFAULT_LINKS;
+  const links = (config.INDIGO_FOOTER_EXPLORE_LINKS || DEFAULT_LINKS)
+    .filter((link) => !isHiddenFooterLink(link));
 
   const catalogUrl = resolvePublicMfeUrl('/catalog', config);
   const resolveUrl = (url) => resolvePublicMfeUrl(url, config);
