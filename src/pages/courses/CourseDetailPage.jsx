@@ -81,7 +81,6 @@ const CourseDetailPage = () => {
         <header className="tels-course-hero">
           <h1>{course.title}</h1>
           <p className="tels-course-hero__teaser">{course.description}</p>
-          <EnrollButton title={course.title} className="tels-btn tels-btn--inverse tels-course-hero__cta" />
         </header>
 
         <div className="tels-course-extras">
@@ -160,6 +159,9 @@ const CourseDetailPage = () => {
               </Link>
             </div>
           )}
+          <div className="tels-course-facts__enroll" id="enroll">
+            <EnrollButton title={course.title} />
+          </div>
         </aside>
 
         <div className="tels-course-about__primary">
@@ -169,13 +171,11 @@ const CourseDetailPage = () => {
               <ul className="tels-course-learn">
                 {course.learn.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <EnrollButton title={course.title} />
             </section>
 
             <section>
               <h2 className="tels-detail-heading">{intl.formatMessage(messages.courseDescription)}</h2>
               <p className="tels-course-body__copy">{course.longDescription}</p>
-              <EnrollButton title={course.title} />
             </section>
           </div>
         </div>
@@ -195,13 +195,6 @@ const CourseDetailPage = () => {
               </article>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="tels-enroll-banner" id="enroll">
-        <div className="tels-container tels-enroll-banner__inner">
-          <p className="tels-enroll-banner__stat">{intl.formatMessage(messages.enrollNow)}</p>
-          <EnrollButton title={course.title} className="tels-btn tels-btn--inverse" />
         </div>
       </section>
 
