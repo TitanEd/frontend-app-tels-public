@@ -3,26 +3,21 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 
 import { subjectFromSlug } from '../../data/telsCourses';
 import { formatSubject } from '../../i18n/taxonomyMessages';
-import catalogMessages from './catalog-messages';
-import CatalogPage from './CatalogPage';
+import coursesMessages from './courses-messages';
+import CoursesPage from './CoursesPage';
 
-/**
- * Subject landing page — CatalogPage locked to one subject.
- * (tels-mirror's source renders EmailSignup twice here — once inside
- * CatalogView, once again in this wrapper. Fixed to render once.)
- */
 const SubjectPage = () => {
   const intl = useIntl();
   const { slug } = useParams();
   const subject = subjectFromSlug(slug);
 
   if (!subject) {
-    return <Navigate to="/catalog" replace />;
+    return <Navigate to="/courses" replace />;
   }
 
   return (
-    <CatalogPage
-      title={intl.formatMessage(catalogMessages.subjectCourses, {
+    <CoursesPage
+      title={intl.formatMessage(coursesMessages.subjectCourses, {
         subject: formatSubject(intl, subject),
       })}
       lockedSubject={subject}

@@ -33,7 +33,9 @@ const CourseCard = ({ course }) => {
       <div className="tels-course-card__body">
         <div className="tels-course-card__eyebrow">
           <BookOpen size={13} />
-          <Link to={`/subject/${course.subjectSlug}`}>{formatSubject(intl, course.subject)}</Link>
+          <Link to={`/courses?subject=${encodeURIComponent(course.subject)}`}>
+            {formatSubject(intl, course.subject)}
+          </Link>
           <span>&bull;</span>
           <span>
             <ModalityIcon size={13} />

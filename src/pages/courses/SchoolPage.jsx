@@ -2,21 +2,16 @@ import { Navigate, useParams } from 'react-router-dom';
 import { useIntl } from '@edx/frontend-platform/i18n';
 
 import { SCHOOLS } from '../../data/telsCourses';
-import catalogMessages from './catalog-messages';
-import CatalogPage from './CatalogPage';
+import coursesMessages from './courses-messages';
+import CoursesPage from './CoursesPage';
 
-/**
- * School landing page — school header band + CatalogPage locked to one
- * school. (tels-mirror's source renders EmailSignup twice here — once
- * inside CatalogView, once again in this wrapper. Fixed to render once.)
- */
 const SchoolPage = () => {
   const intl = useIntl();
   const { slug } = useParams();
   const school = SCHOOLS.find((s) => s.slug === slug);
 
   if (!school) {
-    return <Navigate to="/catalog" replace />;
+    return <Navigate to="/courses" replace />;
   }
 
   return (
@@ -32,8 +27,8 @@ const SchoolPage = () => {
           <h1 style={{ margin: 0 }}>{school.name}</h1>
         </div>
       </div>
-      <CatalogPage
-        title={intl.formatMessage(catalogMessages.schoolCourses, { school: school.name })}
+      <CoursesPage
+        title={intl.formatMessage(coursesMessages.schoolCourses, { school: school.name })}
         lockedSchool={school.slug}
       />
     </>

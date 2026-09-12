@@ -1,10 +1,11 @@
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { resolvePublicMfeUrl } from './publicUrls';
+import { publicHomeHref, resolveFooterHref, resolvePublicMfeUrl } from './publicUrls';
 import messages from './footer-messages';
 import './IndigoFooter.scss';
 
 const DEFAULT_LINKS = [
+  { titleKey: 'home', url: '/' },
   { titleKey: 'privacy', url: '/privacy' },
   { titleKey: 'terms', url: '/terms' },
   { titleKey: 'about', url: '/about' },
@@ -43,8 +44,8 @@ const IndigoFooter = () => {
   const links = (config.INDIGO_FOOTER_EXPLORE_LINKS || DEFAULT_LINKS)
     .filter((link) => !isHiddenFooterLink(link));
 
-  const catalogUrl = resolvePublicMfeUrl('/catalog', config);
-  const resolveUrl = (url) => resolvePublicMfeUrl(url, config);
+  const homeUrl = publicHomeHref(config);
+  const coursesUrl = resolvePublicMfeUrl('/courses', config);
 
   const linkLabel = (link) => {
     if (link.titleKey && link.titleKey in messages) {
@@ -57,7 +58,7 @@ const IndigoFooter = () => {
     <footer className="tels-footer" role="contentinfo">
       <div className="tels-container tels-footer__top">
         <div>
-          <a href={catalogUrl} className="tels-btn tels-btn--primary">
+          <a href={coursesUrl} className="tels-btn tels-btn--primary">
             {intl.formatMessage(messages.exploreCoursesCta)}
           </a>
         </div>
@@ -67,7 +68,7 @@ const IndigoFooter = () => {
           <ul>
             {links.map((link) => (
               <li key={`${link.url}-${link.titleKey || link.title}`}>
-                <a href={resolveUrl(link.url)}>{linkLabel(link)}</a>
+                <a href={resolveFooterHref(link, config)}>{linkLabel(link)}</a>
               </li>
             ))}
           </ul>
@@ -75,7 +76,9 @@ const IndigoFooter = () => {
 
         <div className="tels-footer__brand">
           <div className="tels-footer__logo">
-            <img src={logoUrl} alt={siteName} />
+            <a href={homeUrl} aria-label={siteName}>
+              <img src={logoUrl} alt={siteName} />
+            </a>
           </div>
         </div>
       </div>

@@ -11,6 +11,11 @@ const messages = defineMessages({
     defaultMessage: 'Footer Links',
     description: 'Screen-reader-only heading for the footer legal-links column (matches the live pll.harvard.edu markup, which hides this heading visually)',
   },
+  home: {
+    id: 'indigo.footer.link.home',
+    defaultMessage: 'Home',
+    description: 'Footer Home link (public MFE)',
+  },
   privacy: {
     id: 'indigo.footer.link.privacy',
     defaultMessage: 'Privacy Policy',

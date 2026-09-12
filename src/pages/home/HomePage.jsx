@@ -8,7 +8,7 @@ import {
 import CourseCard from '../../components/CourseCard';
 import EmailSignup from '../../components/EmailSignup';
 import {
-  COURSES, SUBJECTS, SCHOOLS, FEATURED_TOPICS, TRENDING_GRAPHICS, subjectSlug,
+  COURSES, SUBJECTS, SCHOOLS, FEATURED_TOPICS, TRENDING_GRAPHICS,
 } from '../../data/telsCourses';
 import taxonomyMessages, {
   formatAvailability,
@@ -70,7 +70,9 @@ const TrendingCard = ({ course, i }) => {
       </Link>
       <div className="tels-trending-card__body">
         <div className="tels-course-card__eyebrow">
-          <Link to={`/subject/${course.subjectSlug}`}>{formatSubject(intl, course.subject)}</Link>
+          <Link to={`/courses?subject=${encodeURIComponent(course.subject)}`}>
+            {formatSubject(intl, course.subject)}
+          </Link>
         </div>
         <h3 className="tels-course-card__title">
           <Link to={`/course/${course.slug}`}>{course.title}</Link>
@@ -104,10 +106,10 @@ const HomePage = () => {
           </h1>
           <p className="tels-hero__subtitle">{intl.formatMessage(messages.heroSubtitle)}</p>
           <div className="tels-hero__cta" style={{ justifyContent: 'center' }}>
-            <Link to="/catalog" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.allCourses)}</Link>
-            <Link to="/catalog?modality=Online" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.onlineCourses)}</Link>
-            <Link to="/catalog?price=Free" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.freeCourses)}</Link>
-            <Link to="/catalog?modality=Online+Live" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.liveOnline)}</Link>
+            <Link to="/courses" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.allCourses)}</Link>
+            <Link to="/courses?modality=Online" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.onlineCourses)}</Link>
+            <Link to="/courses?price=Free" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.freeCourses)}</Link>
+            <Link to="/courses?modality=Online+Live" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.liveOnline)}</Link>
           </div>
         </div>
       </section>
@@ -125,14 +127,14 @@ const HomePage = () => {
         <div className="tels-container">
           <SectionHeader
             title={intl.formatMessage(messages.subjectAreas)}
-            viewAll={{ to: '/catalog', label: intl.formatMessage(messages.viewAllSubjects) }}
+            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewAllSubjects) }}
           />
           <ul className="tels-subject-grid">
             {SUBJECTS.map((s) => {
               const SubjectIcon = SUBJECT_ICONS[s] || BookOpen;
               return (
                 <li key={s}>
-                  <Link to={`/subject/${subjectSlug(s)}`}>
+                  <Link to={`/courses?subject=${encodeURIComponent(s)}`}>
                     <SubjectIcon size={15} />
                     <span>{formatSubject(intl, s)}</span>
                   </Link>
@@ -147,7 +149,7 @@ const HomePage = () => {
         <div className="tels-container">
           <SectionHeader
             title={intl.formatMessage(messages.trending)}
-            viewAll={{ to: '/catalog', label: intl.formatMessage(messages.viewAllTrending) }}
+            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewAllTrending) }}
           />
           <div className="tels-grid tels-grid--3">
             {trending.map((c, i) => <TrendingCard key={c.slug} course={c} i={i} />)}
@@ -162,7 +164,7 @@ const HomePage = () => {
           </h2>
           <div className="tels-topic-pills">
             {FEATURED_TOPICS.map((t) => (
-              <Link key={t} to={`/catalog?keywords=${encodeURIComponent(t)}`} className="tels-topic-pill">
+              <Link key={t} to={`/courses?keywords=${encodeURIComponent(t)}`} className="tels-topic-pill">
                 {t}
               </Link>
             ))}
@@ -176,7 +178,7 @@ const HomePage = () => {
         <div className="tels-container">
           <SectionHeader
             title={intl.formatMessage(messages.recentlyAdded)}
-            viewAll={{ to: '/catalog', label: intl.formatMessage(messages.viewRecentlyAdded) }}
+            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewRecentlyAdded) }}
           />
           <ThreeCards items={recent} />
         </div>
@@ -186,7 +188,7 @@ const HomePage = () => {
         <div className="tels-container">
           <SectionHeader
             title={intl.formatMessage(messages.startingSoon)}
-            viewAll={{ to: '/catalog', label: intl.formatMessage(messages.viewStartingSoon) }}
+            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewStartingSoon) }}
           />
           <ThreeCards items={startingSoon} />
         </div>
@@ -228,7 +230,7 @@ const HomePage = () => {
       >
         <div className="tels-container tels-cta-photo__inner">
           <h2>{intl.formatMessage(messages.keepLearning)}</h2>
-          <Link to="/catalog" className="tels-btn tels-btn--sm">{intl.formatMessage(messages.viewAllCourses)}</Link>
+          <Link to="/courses" className="tels-btn tels-btn--sm">{intl.formatMessage(messages.viewAllCourses)}</Link>
         </div>
       </section>
     </>
