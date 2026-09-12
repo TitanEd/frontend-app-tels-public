@@ -38,15 +38,15 @@ const Fact = ({ icon: Icon, label, children }) => (
   </div>
 );
 
-const LearnMore = ({ title, href = '#enroll', className = 'tels-btn tels-btn--outline' }) => {
+const EnrollButton = ({ title, href = '#enroll', className = 'tels-btn tels-btn--primary' }) => {
   const intl = useIntl();
   return (
     <a
       className={className}
       href={href}
-      aria-label={intl.formatMessage(messages.learnMoreAria, { title })}
+      aria-label={intl.formatMessage(messages.enrollAria, { title })}
     >
-      {intl.formatMessage(messages.learnMore)}
+      {intl.formatMessage(messages.enroll)}
     </a>
   );
 };
@@ -63,7 +63,7 @@ const CourseDetailPage = () => {
   );
 
   if (!course) {
-    return <Navigate to="/catalog" replace />;
+    return <Navigate to="/courses" replace />;
   }
 
   const school = SCHOOLS.find((s) => s.slug === course.schoolSlug);
@@ -81,7 +81,6 @@ const CourseDetailPage = () => {
         <header className="tels-course-hero">
           <h1>{course.title}</h1>
           <p className="tels-course-hero__teaser">{course.description}</p>
-          <LearnMore title={course.title} className="tels-btn tels-btn--inverse tels-course-hero__cta" />
         </header>
 
         <div className="tels-course-extras">
@@ -120,7 +119,9 @@ const CourseDetailPage = () => {
             <Fact icon={Clock} label={intl.formatMessage(messages.timeCommitment)}>{course.timeCommitment}</Fact>
             <Fact icon={Gauge} label={intl.formatMessage(messages.pace)}>{course.pace}</Fact>
             <Fact icon={GraduationCap} label={intl.formatMessage(messages.subject)}>
-              <Link to={`/subject/${course.subjectSlug}`}>{formatSubject(intl, course.subject)}</Link>
+              <Link to={`/courses?subject=${encodeURIComponent(course.subject)}`}>
+                {formatSubject(intl, course.subject)}
+              </Link>
             </Fact>
             <Fact icon={Signal} label={intl.formatMessage(messages.difficulty)}>
               {formatDifficulty(intl, course.difficulty)}
@@ -140,7 +141,7 @@ const CourseDetailPage = () => {
             <Fact icon={Tag} label={intl.formatMessage(messages.topics)}>
               <div className="tels-topic-chips">
                 {course.topics.map((t) => (
-                  <Link key={t} to={`/catalog?keywords=${encodeURIComponent(t)}`} className="tels-topic-chip">
+                  <Link key={t} to={`/courses?keywords=${encodeURIComponent(t)}`} className="tels-topic-chip">
                     {t}
                   </Link>
                 ))}
@@ -152,12 +153,15 @@ const CourseDetailPage = () => {
               <p className="tels-course-facts__schools-label">
                 {intl.formatMessage(messages.associatedSchools)}
               </p>
-              <Link to={`/school/${school.slug}`} className="tels-course-school">
+              <Link to={`/courses?school=${encodeURIComponent(school.slug)}`} className="tels-course-school">
                 {school.logo ? <img src={school.logo} alt="" /> : null}
                 <span>{school.name}</span>
               </Link>
             </div>
           )}
+          <div className="tels-course-facts__enroll" id="enroll">
+            <EnrollButton title={course.title} />
+          </div>
         </aside>
 
         <div className="tels-course-about__primary">
@@ -167,13 +171,11 @@ const CourseDetailPage = () => {
               <ul className="tels-course-learn">
                 {course.learn.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <LearnMore title={course.title} />
             </section>
 
             <section>
               <h2 className="tels-detail-heading">{intl.formatMessage(messages.courseDescription)}</h2>
               <p className="tels-course-body__copy">{course.longDescription}</p>
-              <LearnMore title={course.title} />
             </section>
           </div>
         </div>
@@ -193,13 +195,6 @@ const CourseDetailPage = () => {
               </article>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="tels-enroll-banner" id="enroll">
-        <div className="tels-container tels-enroll-banner__inner">
-          <p className="tels-enroll-banner__stat">{intl.formatMessage(messages.enrollNow)}</p>
-          <LearnMore title={course.title} className="tels-btn tels-btn--inverse" />
         </div>
       </section>
 

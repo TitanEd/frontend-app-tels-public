@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { ComingSoonPage } from '../coming-soon';
 import HomePage from '../pages/home/HomePage';
-import CatalogPage from '../pages/courses/CatalogPage';
+import CoursesPage from '../pages/courses/CoursesPage';
 import SubjectPage from '../pages/courses/SubjectPage';
 import SchoolPage from '../pages/courses/SchoolPage';
 import CourseDetailPage from '../pages/courses/CourseDetailPage';
@@ -23,8 +23,7 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<PageWrap><HomePage /></PageWrap>} />
     <Route path="/home" element={<Navigate to="/" replace />} />
-    <Route path="/catalog" element={<PageWrap><CatalogPage /></PageWrap>} />
-    <Route path="/courses" element={<Navigate to="/catalog" replace />} />
+    <Route path="/courses" element={<PageWrap><CoursesPage /></PageWrap>} />
     <Route path="/subject/:slug" element={<PageWrap><SubjectPage /></PageWrap>} />
     <Route path="/school/:slug" element={<PageWrap><SchoolPage /></PageWrap>} />
     <Route path="/course/:slug" element={<PageWrap><CourseDetailPage /></PageWrap>} />

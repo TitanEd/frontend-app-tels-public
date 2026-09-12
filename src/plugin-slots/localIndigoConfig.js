@@ -20,14 +20,14 @@ const withBase = (path) => (PUBLIC_BASE === '/' ? path : `${PUBLIC_BASE}${path}`
 export const localIndigoConfig = {
   INDIGO_ENABLE_DARK_TOGGLE: false,
   INDIGO_ENABLE_LANGUAGE_MENU: false,
-  INDIGO_HOME_URL: PUBLIC_BASE,
-  INDIGO_CATALOG_URL: withBase('/catalog'),
-  INDIGO_COURSES_URL: withBase('/catalog'),
+  INDIGO_HOME_URL: PUBLIC_BASE === '/' ? '/public/' : `${PUBLIC_BASE}/`,
+  INDIGO_COURSES_URL: withBase('/courses'),
   INDIGO_ABOUT_URL: withBase('/about'),
   INDIGO_CONTACT_URL: withBase('/contact'),
   INDIGO_PRIVACY_URL: withBase('/privacy'),
   INDIGO_TERMS_URL: withBase('/terms'),
   INDIGO_FOOTER_EXPLORE_LINKS: [
+    { titleKey: 'home', url: '/' },
     { titleKey: 'privacy', url: '/privacy' },
     { titleKey: 'terms', url: '/terms' },
     { titleKey: 'about', url: '/about' },

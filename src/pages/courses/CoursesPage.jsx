@@ -15,7 +15,7 @@ import taxonomyMessages, {
   formatSubject,
 } from '../../i18n/taxonomyMessages';
 import useDocumentTitle from '../../lib/useDocumentTitle';
-import messages from './catalog-messages';
+import messages from './courses-messages';
 
 const DURATION_BUCKETS = [
   { label: '0-1 weeks', min: 0, max: 1 },
@@ -105,7 +105,7 @@ const RadioOption = ({ checked, onChange, children }) => (
   </label>
 );
 
-const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
+const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
   const intl = useIntl();
   const heading = title || intl.formatMessage(messages.heading);
   useDocumentTitle(
@@ -183,7 +183,7 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
 
   return (
     <>
-      <section className="tels-catalog-header">
+      <section className="tels-courses-header">
         <div className="tels-container">
           <h1>{heading}</h1>
         </div>
@@ -291,7 +291,7 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
         </div>
       </section>
 
-      <section className="tels-catalog-results">
+      <section className="tels-courses-results">
         <div className="tels-container">
           <div className="tels-results-head">
             <h2>
@@ -335,4 +335,4 @@ const CatalogPage = ({ title, lockedSubject, lockedSchool }) => {
   );
 };
 
-export default CatalogPage;
+export default CoursesPage;

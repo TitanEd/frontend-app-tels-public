@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { resolvePublicMfeUrl } from './publicUrls';
+import ChromeLink from './ChromeLink';
+import { publicCoursesHref, publicHomeHref, resolvePublicMfeUrl } from './publicUrls';
 import messages from './messages';
 import { formatSubject } from '../i18n/taxonomyMessages';
 import './TelsHeader.scss';
@@ -70,12 +71,15 @@ const TelsHeader = () => {
 
   const siteName = config.SITE_NAME || 'TitanEd';
   const logoUrl = config.LOGO_URL || `${config.LMS_BASE_URL}/theming/asset/images/logo.png`;
-  const homeUrl = resolvePublicMfeUrl('/', config);
-  const catalogUrl = resolvePublicMfeUrl('/catalog', config);
+  const homeUrl = publicHomeHref(config);
+  const coursesUrl = resolvePublicMfeUrl('/courses', config);
 
   const isPublicMfe = process.env.APP_ID === 'public';
   const pathname = location?.pathname || '';
   const isHome = isPublicMfe && (pathname === '/' || pathname === '');
+  const hasActiveCourseFilters = isPublicMfe
+    && pathname.startsWith('/courses')
+    && !!(location?.search && location.search.length > 1);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -114,10 +118,10 @@ const TelsHeader = () => {
               >
                 {menuOpen ? <X /> : <Menu />}
               </button>
-              {!isHome && (
-                <a href={catalogUrl} className="tels-header__view-all">
+              {hasActiveCourseFilters && (
+                <ChromeLink href={coursesUrl} className="tels-header__view-all">
                   {intl.formatMessage(messages.viewAllCourses)}
-                </a>
+                </ChromeLink>
               )}
             </div>
 
@@ -147,15 +151,15 @@ const TelsHeader = () => {
                 const SubjectIcon = SUBJECT_ICONS[subject] || BookOpen;
                 return (
                   <li key={subject}>
-                    <a
-                      href={`${catalogUrl}?subject=${encodeURIComponent(subject)}`}
+                    <ChromeLink
+                      href={publicCoursesHref(config, { subject })}
                       className="tels-header__subject-link"
                       onClick={closeMenu}
                       tabIndex={menuOpen ? 0 : -1}
                     >
                       <SubjectIcon size={20} />
                       <span>{formatSubject(intl, subject)}</span>
-                    </a>
+                    </ChromeLink>
                   </li>
                 );
               })}

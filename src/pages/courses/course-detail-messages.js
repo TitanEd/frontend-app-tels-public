@@ -11,15 +11,15 @@ const messages = defineMessages({
     defaultMessage: 'Course — TELS by TitanEd',
     description: 'Course about page title when course is missing',
   },
-  learnMore: {
-    id: 'tels.course.learnMore',
-    defaultMessage: 'Learn More',
-    description: 'Course about Learn More CTA',
+  enroll: {
+    id: 'tels.course.enroll',
+    defaultMessage: 'Enroll',
+    description: 'Course about Enroll CTA',
   },
-  learnMoreAria: {
-    id: 'tels.course.learnMoreAria',
-    defaultMessage: 'Learn more about {title}',
-    description: 'Course about Learn More aria-label',
+  enrollAria: {
+    id: 'tels.course.enrollAria',
+    defaultMessage: 'Enroll in {title}',
+    description: 'Course about Enroll aria-label',
   },
   duration: {
     id: 'tels.course.extras.duration',

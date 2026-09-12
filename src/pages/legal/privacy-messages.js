@@ -27,7 +27,7 @@ const messages = defineMessages({
     description: 'Privacy see-also line. termsLink is a react-intl rich-text tag.',
   },
   scopeTitle: { id: 'tels.legal.privacy.scope.title', defaultMessage: '1. Scope of this Statement', description: 'Privacy section title' },
-  scopeBody: { id: 'tels.legal.privacy.scope.body', defaultMessage: 'TODO: Describe which TELS properties (website, catalog, course platform, marketing emails) this statement covers and who the data controller is.', description: 'Privacy section body' },
+  scopeBody: { id: 'tels.legal.privacy.scope.body', defaultMessage: 'TODO: Describe which TELS properties (website, courses, course platform, marketing emails) this statement covers and who the data controller is.', description: 'Privacy section body' },
   collectTitle: { id: 'tels.legal.privacy.collect.title', defaultMessage: '2. Information We Collect', description: 'Privacy section title' },
   collectBody: { id: 'tels.legal.privacy.collect.body', defaultMessage: 'TODO: Account details, enrollment activity, payment metadata, device/usage data, cookies, and any information collected from third-party sign-in providers.', description: 'Privacy section body' },
   useTitle: { id: 'tels.legal.privacy.use.title', defaultMessage: '3. How We Use Information', description: 'Privacy section title' },

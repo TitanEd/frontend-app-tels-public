@@ -1,18 +1,24 @@
 /**
- * Placeholder course catalog for the public marketing pages (Home, Catalog,
+ * Placeholder courses for the public marketing pages (Home, Courses,
  * Subject/School landing, Course Detail). Ported from the tels-mirror
  * reference design (github.com/Sonu-TitanEd/tels-mirror, src/data/courses.ts)
  * so those pages render real-looking content while matching the design
  * pixel-for-pixel.
  *
  * This is DEMO DATA, not real Open edX course discovery. Wiring the real
- * course discovery/catalog API is separate, larger follow-up work.
+ * course discovery API is separate, larger follow-up work.
  */
 
 import neuralNetworksImg from '../assets/pll/neural-networks.jpg';
 import aiStrategyImg from '../assets/pll/ai-strategy.jpg';
 import legalFutureImg from '../assets/pll/legal-future.jpg';
 import futureProofAiImg from '../assets/pll/future-proof-ai.jpg';
+import eduquestLogo from '../assets/schools/eduquest.png';
+import ebcLogo from '../assets/schools/ebc.png';
+import scapesLogo from '../assets/schools/scapes.png';
+import ufjLogo from '../assets/schools/ufj.png';
+import vicLogo from '../assets/schools/vic.png';
+import titanedAcademyLogo from '../assets/schools/titaned-academy.png';
 
 export const SUBJECTS = [
   'Art & Design', 'Business', 'Computer Science', 'Data Science',
@@ -21,12 +27,12 @@ export const SUBJECTS = [
 ];
 
 export const SCHOOLS = [
-  { slug: 'eduquest', name: 'EduQuest', logo: 'https://titaned.com/wp-content/uploads/2024/12/Eduquest_logo-1.png' },
-  { slug: 'ebc', name: 'EBC Institute', logo: 'https://titaned.com/wp-content/uploads/2023/08/EBC.png' },
-  { slug: 'scapes', name: 'Scapes Academy', logo: 'https://titaned.com/wp-content/uploads/2023/08/Scapes.png' },
-  { slug: 'ufj', name: 'UFJ Learning', logo: 'https://titaned.com/wp-content/uploads/2023/08/UFJ22.png' },
-  { slug: 'vic', name: 'VIC Studies', logo: 'https://titaned.com/wp-content/uploads/2024/12/vic-logo-nobg1.png' },
-  { slug: 'titaned-academy', name: 'TitanEd Academy', logo: '' },
+  { slug: 'eduquest', name: 'EduQuest', logo: eduquestLogo },
+  { slug: 'ebc', name: 'EBC Institute', logo: ebcLogo },
+  { slug: 'scapes', name: 'Scapes Academy', logo: scapesLogo },
+  { slug: 'ufj', name: 'UFJ Learning', logo: ufjLogo },
+  { slug: 'vic', name: 'VIC Studies', logo: vicLogo },
+  { slug: 'titaned-academy', name: 'TitanEd Academy', logo: titanedAcademyLogo },
   { slug: 'demo-org', name: 'Demo Org', logo: '' },
   { slug: 'openedx-demo', name: 'Open edX Demo', logo: '' },
 ];

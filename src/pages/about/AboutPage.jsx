@@ -79,7 +79,7 @@ const AboutPage = () => {
         <div className="tels-container">
           <h2>{intl.formatMessage(messages.ready)}</h2>
           <div className="tels-cta-band__actions">
-            <Link to="/catalog" className="tels-btn tels-btn--primary">
+            <Link to="/courses" className="tels-btn tels-btn--primary">
               {intl.formatMessage(messages.exploreCourses)}
             </Link>
             <Link to="/contact" className="tels-btn tels-btn--outline">
