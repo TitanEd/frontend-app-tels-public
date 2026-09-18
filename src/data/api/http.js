@@ -39,7 +39,20 @@ export const resolveMediaUrl = (path) => {
 };
 
 /**
- * Log and swallow — used when falling back to mock data.
+ * Open edX's own "no course image" placeholder — served by the active LMS
+ * theme via the standard /theming/asset/ resolver (same pattern already
+ * used for LOGO_URL in TelsHeader.jsx / IndigoFooter.jsx), so it always
+ * matches whatever theme is actually live instead of hardcoding a theme
+ * name. Use as the `src`/`onError` fallback for any course image — never a
+ * third-party placeholder service.
+ */
+export const getNoCourseImageUrl = () => (
+  `${getLmsBaseSafe()}/theming/asset/images/no_course_image.png`
+);
+
+/**
+ * Log and swallow — used for non-critical API failures (e.g. suggested
+ * courses) that degrade to an empty state rather than blocking the page.
  */
 export const logApiFailure = (label, error) => {
   try {

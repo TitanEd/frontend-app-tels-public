@@ -6,13 +6,16 @@ import {
 import { getChangeEnrollmentUrl } from './urls';
 
 /**
- * Enroll via LMS `/change_enrollment` (Open edX catalog standard).
+ * Enroll via Template A control-panel
+ * `POST /api/v1/catalog/change-enrollment/`.
  * Does NOT fake success on failure.
+ * User-visible local copy must use intl message ids in the UI layer.
  */
 export async function enrollInCourse(courseId, { nextPath } = {}) {
   if (!courseId) {
-    const err = new Error('Missing course_id');
+    const err = new Error('');
     err.code = 'MISSING_COURSE_ID';
+    err.fromApi = false;
     throw err;
   }
 
@@ -25,38 +28,54 @@ export async function enrollInCourse(courseId, { nextPath } = {}) {
       },
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Content-Type': 'application/json',
         },
       },
     );
     const payload = camelCaseObject(data) || {};
+    const lmsBase = getConfig().LMS_BASE_URL || '';
+    const rawRedirect = payload.redirectUrl
+      || payload.redirect
+      || payload.learningUrl
+      || '';
+    let redirect = `${lmsBase}/dashboard`;
+    if (rawRedirect) {
+      if (/^https?:\/\//i.test(rawRedirect)) {
+        redirect = rawRedirect;
+      } else {
+        redirect = `${lmsBase}${rawRedirect.startsWith('/') ? '' : '/'}${rawRedirect}`;
+      }
+    }
     return {
       ok: true,
       courseId,
       ...payload,
-      redirect: payload.redirect
-        || payload.learningUrl
-        || `${getConfig().LMS_BASE_URL}/dashboard`,
+      redirect,
     };
   } catch (error) {
     logApiFailure('enrollInCourse failed', error);
 
-    if (isHttpError(error, 403)) {
+    if (isHttpError(error, 403) || isHttpError(error, 401)) {
       const loginNext = nextPath
         || (typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : '/');
-      const loginError = new Error('Login required to enroll');
+      const loginError = new Error('');
       loginError.code = 'LOGIN_REQUIRED';
+      loginError.fromApi = false;
       loginError.loginUrl = buildLoginRedirectUrl(loginNext);
-      loginError.status = 403;
+      loginError.status = getHttpStatus(error) || 403;
       throw loginError;
     }
 
     const status = getHttpStatus(error);
-    const enrollError = new Error(
-      error?.response?.data?.error?.message
-      || error?.message
-      || 'Enrollment is not available for this course',
+    const responseData = camelCaseObject(error?.response?.data) || {};
+    const apiMessage = (
+      (typeof responseData?.error === 'string' && responseData.error)
+      || responseData?.error?.message
+      || responseData?.message
+      || null
     );
+    const enrollError = new Error(apiMessage || '');
+    enrollError.fromApi = !!apiMessage;
     enrollError.code = 'ENROLLMENT_FAILED';
     enrollError.status = status;
     throw enrollError;

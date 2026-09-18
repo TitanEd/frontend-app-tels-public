@@ -5,6 +5,9 @@ export {
   fetchSuggestedCourses,
 } from './courses';
 export { enrollInCourse, redirectToCheckout } from './enrollment';
-export { fetchHomePromo, DEFAULT_HOME_PROMO } from './promo';
+export { fetchHomePromo } from './promo';
 export { submitContact } from './contact';
-export { resolveMediaUrl, buildLoginRedirectUrl, getHttpStatus } from './http';
+export { fetchFooterConfig, resolveContactReachInfo } from './footerConfig';
+export {
+  resolveMediaUrl, buildLoginRedirectUrl, getHttpStatus, getNoCourseImageUrl,
+} from './http';

@@ -71,6 +71,26 @@ const messages = defineMessages({
     defaultMessage: 'Gurugram, Haryana, India',
     description: 'Global HQ address line',
   },
+  fallbackEmail: {
+    id: 'public.contact.fallback.email',
+    defaultMessage: 'Legal@TitanEd.com',
+    description: 'Contact email shown only when footer-config request fails',
+  },
+  fallbackAddress: {
+    id: 'public.contact.fallback.address',
+    defaultMessage: 'TitanEd, Gurugram,\nHaryana, India',
+    description: 'Contact address shown only when footer-config request fails',
+  },
+  websiteUrl: {
+    id: 'public.contact.website.url',
+    defaultMessage: 'https://titaned.com/',
+    description: 'Contact website href',
+  },
+  websiteLabel: {
+    id: 'public.contact.website.label',
+    defaultMessage: 'titaned.com',
+    description: 'Contact website link label',
+  },
   labelHours: {
     id: 'public.contact.label.hours',
     defaultMessage: 'Hours',
@@ -131,6 +151,11 @@ const messages = defineMessages({
     defaultMessage: 'Unable to submit — try again later.',
     description: 'Contact form generic error',
   },
+  formValidationError: {
+    id: 'public.contact.form.validation-error',
+    defaultMessage: 'Please fix the highlighted fields.',
+    description: 'Contact form validation error when API has no message',
+  },
   formSubmitting: {
     id: 'public.contact.form.submitting',
     defaultMessage: 'Sending…',
@@ -165,41 +190,6 @@ const messages = defineMessages({
     id: 'public.contact.form.org-placeholder',
     defaultMessage: 'Optional',
     description: 'Organization field placeholder',
-  },
-  fieldSubject: {
-    id: 'public.contact.form.subject',
-    defaultMessage: 'Subject',
-    description: 'Subject field label',
-  },
-  subjectChoose: {
-    id: 'public.contact.form.subject-choose',
-    defaultMessage: 'Choose one',
-    description: 'Subject select placeholder option',
-  },
-  subjectGeneral: {
-    id: 'public.contact.form.subject-general',
-    defaultMessage: 'General inquiry',
-    description: 'Subject option general',
-  },
-  subjectLearner: {
-    id: 'public.contact.form.subject-learner',
-    defaultMessage: 'Learner support',
-    description: 'Subject option learner support',
-  },
-  subjectPartnership: {
-    id: 'public.contact.form.subject-partnership',
-    defaultMessage: 'Partnership',
-    description: 'Subject option partnership',
-  },
-  subjectDemo: {
-    id: 'public.contact.form.subject-demo',
-    defaultMessage: 'Request a demo',
-    description: 'Subject option demo',
-  },
-  subjectMedia: {
-    id: 'public.contact.form.subject-media',
-    defaultMessage: 'Media',
-    description: 'Subject option media',
   },
   fieldMessage: {
     id: 'public.contact.form.message',

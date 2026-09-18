@@ -39,6 +39,31 @@
   margin-top: 0;
 }
 
+// Name + email side-by-side — avoid Bootstrap `.row` (flex + negative margins).
+.tels-form__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  .field {
+    margin-bottom: 0;
+    min-width: 0;
+  }
+
+  input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 600px) {
+  .tels-form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .tels-contact__consent-input {
   width: 1rem !important;
   height: 1rem !important;
@@ -71,6 +96,10 @@
 
 .tels-contact__office-address {
   margin-bottom: 0;
+}
+
+.tels-contact__address {
+  white-space: pre-line;
 }
 
 .tels-contact__commitments {

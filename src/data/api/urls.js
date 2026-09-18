@@ -2,43 +2,65 @@ import { getConfig } from '@edx/frontend-platform';
 
 export const getLmsBaseUrl = () => getConfig().LMS_BASE_URL || '';
 
-/** Open edX course list search (catalog MFE standard). */
-export const getCourseListSearchUrl = () => (
-  `${getLmsBaseUrl()}/search/unstable/v0/course_list_search/`
+/**
+ * Template A control-panel course list / faceted search
+ * (`course_metadata.CourseListView`).
+ */
+export const getCatalogCoursesUrl = () => (
+  `${getLmsBaseUrl()}/api/v1/catalog/courses/`
 );
 
-/** Optional TitanEd enriched search wrapper. */
-export const getTelsCourseSearchUrl = () => (
-  `${getLmsBaseUrl()}/api/tels/v1/courses/search/`
+/**
+ * Template A control-panel course detail
+ * (`course_metadata.CourseDetailView`).
+ */
+export const getCatalogCourseDetailUrl = (courseId) => (
+  `${getLmsBaseUrl()}/api/v1/catalog/courses/${encodeURIComponent(courseId)}`
 );
 
-/** Open edX courseware about/detail. */
-export const getCourseAboutUrl = (courseId) => (
-  `${getLmsBaseUrl()}/api/courseware/course/${encodeURIComponent(courseId)}`
+/**
+ * Template A control-panel related courses
+ * (`course_metadata.CourseRecommendationsView`).
+ */
+export const getCatalogRecommendationsUrl = (courseId) => (
+  `${getLmsBaseUrl()}/api/v1/catalog/courses/${encodeURIComponent(courseId)}/recommendations/`
 );
 
-/** Optional TitanEd detail by course key. */
-export const getTelsCourseDetailUrl = (courseId) => (
-  `${getLmsBaseUrl()}/api/tels/v1/courses/${encodeURIComponent(courseId)}/`
-);
-
-/** Optional TitanEd detail by marketing slug. */
-export const getTelsCourseBySlugUrl = (slug) => (
-  `${getLmsBaseUrl()}/api/tels/v1/courses/by-slug/${encodeURIComponent(slug)}/`
-);
-
+/**
+ * Template A control-panel enroll/unenroll
+ * (`course_metadata.ChangeEnrollmentView`).
+ */
 export const getChangeEnrollmentUrl = () => (
-  `${getLmsBaseUrl()}/change_enrollment`
+  `${getLmsBaseUrl()}/api/v1/catalog/change-enrollment/`
 );
 
-export const getSuggestedCoursesUrl = (courseId) => (
-  `${getLmsBaseUrl()}/api/tels/v1/courses/${encodeURIComponent(courseId)}/suggested/`
-);
-
+/**
+ * Home promo — keep planned TitanEd path until control-panel adds it.
+ */
 export const getHomePromoUrl = () => (
   `${getLmsBaseUrl()}/api/tels/v1/home/promo/`
 );
 
+/**
+ * Template A control-panel contact form (`contat_us.ContactUsAPIView`).
+ */
 export const getContactUrl = () => (
-  `${getLmsBaseUrl()}/api/tels/v1/contact/`
+  `${getLmsBaseUrl()}/api/v1/contact-us/`
 );
+
+/**
+ * Template A control-panel footer content
+ * (`ui_configuration.footer_config` → FooterConfiguration).
+ * Prefer MFE_CONFIG.FOOTER_CONFIG_URL when Tutor wires it.
+ */
+export const getFooterConfigUrl = () => {
+  try {
+    const configured = getConfig().FOOTER_CONFIG_URL;
+    if (configured) {
+      return configured;
+    }
+  } catch {
+    // config may be unavailable in tests
+  }
+  return `${getLmsBaseUrl()}/ui_configuration/footer-config`;
+};

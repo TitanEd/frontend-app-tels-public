@@ -11,6 +11,31 @@ const messages = defineMessages({
     defaultMessage: 'Course — TELS',
     description: 'Course detail document title while loading',
   },
+  loadErrorTitle: {
+    id: 'public.course-detail.error.title',
+    defaultMessage: "Couldn't load this course",
+    description: 'Course detail error title when detail API fails',
+  },
+  loadErrorBody: {
+    id: 'public.course-detail.error.body',
+    defaultMessage: 'Something went wrong on our end — please try again in a moment.',
+    description: 'Course detail local fallback error body when API has no message',
+  },
+  loadErrorRetry: {
+    id: 'public.course-detail.error.retry',
+    defaultMessage: 'Try again',
+    description: 'Course detail retry CTA',
+  },
+  loadErrorBack: {
+    id: 'public.course-detail.error.back',
+    defaultMessage: 'Back to courses',
+    description: 'Course detail error link back to courses list',
+  },
+  untitledCourse: {
+    id: 'public.course-detail.untitled',
+    defaultMessage: 'Untitled course',
+    description: 'Fallback title when course detail has no name from the API',
+  },
   breadcrumbHome: {
     id: 'public.course-detail.breadcrumb.home',
     defaultMessage: 'Home',
@@ -35,11 +60,6 @@ const messages = defineMessages({
     id: 'public.course-detail.meta.starts',
     defaultMessage: '· Starts {startDate}',
     description: 'Start date after organization',
-  },
-  price: {
-    id: 'public.course-detail.enroll.price',
-    defaultMessage: '$149',
-    description: 'Paid course price display',
   },
   enrollNoteFree: {
     id: 'public.course-detail.enroll.note-free',
@@ -75,6 +95,11 @@ const messages = defineMessages({
     id: 'public.course-detail.enroll.already',
     defaultMessage: 'You are enrolled — go to course',
     description: 'CTA when user is already enrolled',
+  },
+  watchIntro: {
+    id: 'public.course-detail.enroll.watch-intro',
+    defaultMessage: 'Watch intro video',
+    description: 'Link to the course intro/promo video, shown only when the API provides one',
   },
   perkSelfPaced: {
     id: 'public.course-detail.enroll.perk-self-paced',
@@ -181,26 +206,6 @@ const messages = defineMessages({
     defaultMessage: 'Prerequisites',
     description: 'Prerequisites heading',
   },
-  prerequisitesBody: {
-    id: 'public.course-detail.prerequisites.body',
-    defaultMessage: 'No formal prerequisites. This {level} course is designed to meet you where you are and build up from there.',
-    description: 'Prerequisites intro with level',
-  },
-  prereq1: {
-    id: 'public.course-detail.prerequisites.1',
-    defaultMessage: 'Basic comfort with a computer and web browser',
-    description: 'Prerequisite item 1',
-  },
-  prereq2: {
-    id: 'public.course-detail.prerequisites.2',
-    defaultMessage: 'Curiosity and willingness to practice',
-    description: 'Prerequisite item 2',
-  },
-  prereq3: {
-    id: 'public.course-detail.prerequisites.3',
-    defaultMessage: 'Approximately 3–5 hours per week to engage with the material',
-    description: 'Prerequisite item 3',
-  },
   howTitle: {
     id: 'public.course-detail.how.title',
     defaultMessage: "How you'll learn",
@@ -231,75 +236,10 @@ const messages = defineMessages({
     defaultMessage: 'Meet your instructor',
     description: 'Instructor section heading',
   },
-  instructorAlt: {
-    id: 'public.course-detail.instructor.alt',
-    defaultMessage: 'Instructor',
-    description: 'Instructor image alt',
-  },
-  instructorName: {
-    id: 'public.course-detail.instructor.name',
-    defaultMessage: 'Dr. Alex Morgan',
-    description: 'Demo instructor name',
-  },
-  instructorRole: {
-    id: 'public.course-detail.instructor.role',
-    defaultMessage: 'Lead Faculty, {org}',
-    description: 'Instructor role with organization',
-  },
-  instructorBio: {
-    id: 'public.course-detail.instructor.bio',
-    defaultMessage: "Alex has spent 15+ years teaching and building in {subject}. Their work bridges research and real-world practice, and they've helped thousands of learners translate ideas into results.",
-    description: 'Instructor bio with subject',
-  },
   testimonialsTitle: {
     id: 'public.course-detail.testimonials.title',
     defaultMessage: 'What learners are saying',
     description: 'Testimonials section heading',
-  },
-  testimonial1Quote: {
-    id: 'public.course-detail.testimonials.1.quote',
-    defaultMessage: "This was hands-down the most useful {subject} course I've taken. The projects made everything click.",
-    description: 'Testimonial 1 quote with subject',
-  },
-  testimonial1Name: {
-    id: 'public.course-detail.testimonials.1.name',
-    defaultMessage: 'Priya S.',
-    description: 'Testimonial 1 name',
-  },
-  testimonial1Role: {
-    id: 'public.course-detail.testimonials.1.role',
-    defaultMessage: 'Program Manager',
-    description: 'Testimonial 1 role',
-  },
-  testimonial2Quote: {
-    id: 'public.course-detail.testimonials.2.quote',
-    defaultMessage: 'Clear structure, excellent instructors, and content I could apply the same week at work.',
-    description: 'Testimonial 2 quote',
-  },
-  testimonial2Name: {
-    id: 'public.course-detail.testimonials.2.name',
-    defaultMessage: 'Marco D.',
-    description: 'Testimonial 2 name',
-  },
-  testimonial2Role: {
-    id: 'public.course-detail.testimonials.2.role',
-    defaultMessage: 'Team Lead',
-    description: 'Testimonial 2 role',
-  },
-  testimonial3Quote: {
-    id: 'public.course-detail.testimonials.3.quote',
-    defaultMessage: 'The pacing worked perfectly with a full-time job, and the capstone gave me something to show employers.',
-    description: 'Testimonial 3 quote',
-  },
-  testimonial3Name: {
-    id: 'public.course-detail.testimonials.3.name',
-    defaultMessage: 'Ayesha K.',
-    description: 'Testimonial 3 name',
-  },
-  testimonial3Role: {
-    id: 'public.course-detail.testimonials.3.role',
-    defaultMessage: 'Analyst',
-    description: 'Testimonial 3 role',
   },
   certificateTitle: {
     id: 'public.course-detail.certificate.title',
@@ -340,61 +280,6 @@ const messages = defineMessages({
     id: 'public.course-detail.faq.title',
     defaultMessage: 'Frequently asked questions',
     description: 'Course detail FAQ heading',
-  },
-  faq1q: {
-    id: 'public.course-detail.faq.1.q',
-    defaultMessage: 'When does the course start?',
-    description: 'FAQ 1 question',
-  },
-  faq1aSelfPaced: {
-    id: 'public.course-detail.faq.1.a-self-paced',
-    defaultMessage: 'This course is self-paced — start any time and learn on your schedule.',
-    description: 'FAQ 1 answer for self-paced',
-  },
-  faq1aScheduled: {
-    id: 'public.course-detail.faq.1.a-scheduled',
-    defaultMessage: 'This course is scheduled to start {startDate}. You can enroll now to reserve your seat.',
-    description: 'FAQ 1 answer for scheduled start',
-  },
-  faq2q: {
-    id: 'public.course-detail.faq.2.q',
-    defaultMessage: 'How long will it take to complete?',
-    description: 'FAQ 2 question',
-  },
-  faq2a: {
-    id: 'public.course-detail.faq.2.a',
-    defaultMessage: 'Most learners finish in about {duration}, spending 3–5 hours per week.',
-    description: 'FAQ 2 answer with duration',
-  },
-  faq3q: {
-    id: 'public.course-detail.faq.3.q',
-    defaultMessage: 'Do I need any prior experience?',
-    description: 'FAQ 3 question',
-  },
-  faq3a: {
-    id: 'public.course-detail.faq.3.a',
-    defaultMessage: 'No. This {level} course starts from the fundamentals and builds up progressively.',
-    description: 'FAQ 3 answer with level',
-  },
-  faq4q: {
-    id: 'public.course-detail.faq.4.q',
-    defaultMessage: 'Will I get a certificate?',
-    description: 'FAQ 4 question',
-  },
-  faq4a: {
-    id: 'public.course-detail.faq.4.a',
-    defaultMessage: 'Yes — a verified certificate is issued when you complete all modules and the capstone project.',
-    description: 'FAQ 4 answer',
-  },
-  faq5q: {
-    id: 'public.course-detail.faq.5.q',
-    defaultMessage: 'Can I access the course on mobile?',
-    description: 'FAQ 5 question',
-  },
-  faq5a: {
-    id: 'public.course-detail.faq.5.a',
-    defaultMessage: 'Yes, the entire course works on mobile, tablet, and desktop.',
-    description: 'FAQ 5 answer',
   },
   whoTitle: {
     id: 'public.course-detail.who.title',

@@ -91,16 +91,6 @@ const messages = defineMessages({
     defaultMessage: 'Browse certificates',
     description: 'Home hero slide 3 CTA',
   },
-  trustedBy: {
-    id: 'public.home.trusted.label',
-    defaultMessage: 'Trusted by leading institutions and organizations',
-    description: 'Home trusted-by strip label',
-  },
-  partnerAlt: {
-    id: 'public.home.trusted.partner-alt',
-    defaultMessage: 'Partner',
-    description: 'Alt text for partner logos',
-  },
   solutionsEyebrow: {
     id: 'public.home.solutions.eyebrow',
     defaultMessage: 'Solutions',
@@ -261,6 +251,21 @@ const messages = defineMessages({
     defaultMessage: 'Show all courses',
     description: 'Home show all courses link',
   },
+  featuredErrorTitle: {
+    id: 'public.home.featured.error-title',
+    defaultMessage: "Couldn't load courses",
+    description: 'Home featured courses error title when catalog API fails',
+  },
+  featuredErrorBody: {
+    id: 'public.home.featured.error-body',
+    defaultMessage: 'Something went wrong on our end — please try again in a moment.',
+    description: 'Home featured local fallback error body when API has no message',
+  },
+  featuredRetry: {
+    id: 'public.home.featured.retry',
+    defaultMessage: 'Try again',
+    description: 'Home featured retry CTA',
+  },
   promoTitle: {
     id: 'public.home.promo.title',
     defaultMessage: 'Online learning, reimagined for the AI era.',
@@ -321,10 +326,6 @@ const messages = defineMessages({
   insight3Tag: { id: 'public.home.insight.3.tag', defaultMessage: 'Webinar', description: 'Home insight 3 tag' },
   insight3Title: { id: 'public.home.insight.3.title', defaultMessage: 'How is AI redefining higher education?', description: 'Home insight 3 title' },
   insight3Body: { id: 'public.home.insight.3.body', defaultMessage: 'Practical steps for adopting generative tools in the classroom.', description: 'Home insight 3 body' },
-  statInitiatives: { id: 'public.home.stats.initiatives', defaultMessage: 'Learning initiatives', description: 'Home stats initiatives label' },
-  statLearners: { id: 'public.home.stats.learners', defaultMessage: 'Learners reached', description: 'Home stats learners label' },
-  statPartners: { id: 'public.home.stats.partners', defaultMessage: 'Partner institutions', description: 'Home stats partners label' },
-  statCountries: { id: 'public.home.stats.countries', defaultMessage: 'Countries served', description: 'Home stats countries label' },
   ctaTitle: {
     id: 'public.home.cta.title',
     defaultMessage: 'Let’s continue this conversation',
