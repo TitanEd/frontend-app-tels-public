@@ -10,16 +10,19 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import CourseCard from '../../components/CourseCard';
 import LoadingScreen, { Skeleton } from '../../components/LoadingScreen';
-import { fetchCoursesList } from '../../data/api';
+import { fetchCourses } from '../../data/api';
 import {
-  SUBJECTS, LEVELS, LANGUAGES, TYPES, ORGS,
-} from '../../data/telsData';
+  CATALOG_FACET_KEYS,
+  buildFacetOptionsFromAggs,
+  countDistinctFacetValues,
+  selectedToCatalogFilters,
+} from '../../data/api/catalogAggs';
+import { displayApiError } from '../../lib/displayApiError';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './messages';
 import './CoursesPage.scss';
 
 const PAGE_SIZE = 8;
-const FILTER_KEYS = ['subject', 'skills', 'org', 'type', 'language', 'level'];
 
 /** Tiny inline debounce — avoids pulling in lodash.debounce for one call site. */
 function debounce(fn, wait) {
@@ -32,13 +35,25 @@ function debounce(fn, wait) {
   return debounced;
 }
 
-const emptySelected = () => ({
-  subject: [], skills: [], org: [], type: [], language: [], level: [],
-});
+const emptySelected = () => CATALOG_FACET_KEYS.reduce((acc, key) => {
+  acc[key] = [];
+  return acc;
+}, {});
+
+/** Merge legacy ?skills= into search string (not a catalog API facet). */
+const parseQFromParams = (searchParams) => {
+  let q = searchParams.get('q') ?? '';
+  const skills = searchParams.getAll('skills').filter(Boolean);
+  if (skills.length) {
+    const extra = skills.join(' ');
+    q = q ? `${q} ${extra}` : extra;
+  }
+  return q;
+};
 
 const parseSelectedFromParams = (searchParams) => {
   const next = emptySelected();
-  FILTER_KEYS.forEach((key) => {
+  CATALOG_FACET_KEYS.forEach((key) => {
     const all = searchParams.getAll(key).filter(Boolean);
     if (all.length) {
       next[key] = all;
@@ -50,21 +65,16 @@ const parseSelectedFromParams = (searchParams) => {
   return next;
 };
 
-const selectedEqual = (a, b) => FILTER_KEYS.every(
+const selectedEqual = (a, b) => CATALOG_FACET_KEYS.every(
   (key) => a[key].length === b[key].length && a[key].every((v, i) => v === b[key][i]),
 );
-
-const includesIgnoreCase = (list, value) => {
-  const needle = String(value || '').toLowerCase();
-  return list.some((v) => String(v || '').toLowerCase() === needle);
-};
 
 const buildSearchParams = (selected, q, page) => {
   const params = new URLSearchParams();
   if (q) {
     params.set('q', q);
   }
-  FILTER_KEYS.forEach((key) => {
+  CATALOG_FACET_KEYS.forEach((key) => {
     (selected[key] || []).forEach((value) => {
       params.append(key, value);
     });
@@ -79,30 +89,89 @@ const CoursesPage = () => {
   const intl = useIntl();
   useDocumentTitle(intl.formatMessage(messages.pageTitle));
   const [searchParams, setSearchParams] = useSearchParams();
-  const { data: courses = [], isLoading } = useQuery({
-    queryKey: ['courses', 'catalog'],
-    queryFn: () => fetchCoursesList({ pageSize: 100, pageIndex: 0 }),
-  });
-  const filters = [
-    { key: 'subject', label: messages.filterSubject, options: SUBJECTS },
-    { key: 'skills', label: messages.filterSkills, options: ['Python', 'AI', 'SQL', 'Leadership', 'Communication', 'Security'] },
-    { key: 'org', label: messages.filterOrg, options: ORGS },
-    { key: 'type', label: messages.filterType, options: TYPES },
-    { key: 'language', label: messages.filterLanguage, options: LANGUAGES },
-    { key: 'level', label: messages.filterLevel, options: LEVELS },
-  ];
 
-  const [q, setQ] = useState(() => searchParams.get('q') ?? '');
+  const [q, setQ] = useState(() => parseQFromParams(searchParams));
   const [selected, setSelected] = useState(() => parseSelectedFromParams(searchParams));
   const [openFilter, setOpenFilter] = useState(null);
   const [page, setPage] = useState(() => Number(searchParams.get('page')) || 1);
-  const [searchDraft, setSearchDraft] = useState(() => searchParams.get('q') ?? '');
+  const [searchDraft, setSearchDraft] = useState(() => parseQFromParams(searchParams));
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
 
-  // Keep local filter state in sync when URL changes (home category links, back/forward).
+  const catalogFilters = useMemo(() => selectedToCatalogFilters(selected), [selected]);
+
+  const { data: browseMeta } = useQuery({
+    queryKey: ['courses', 'catalog', 'browse-meta'],
+    queryFn: () => fetchCourses({ pageSize: 1, pageIndex: 0 }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const {
+    data: catalogData,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['courses', 'catalog', q, catalogFilters, page],
+    queryFn: () => fetchCourses({
+      pageSize: PAGE_SIZE,
+      pageIndex: page - 1,
+      searchString: q,
+      filters: catalogFilters,
+    }),
+    placeholderData: (previous) => previous,
+  });
+
+  const aggs = catalogData?.aggs;
+  const apiTotal = catalogData?.total ?? 0;
+  const apiCourses = catalogData?.courses ?? [];
+
+  const facetOptions = useMemo(() => {
+    if (aggs) {
+      return buildFacetOptionsFromAggs(aggs);
+    }
+    return emptySelected();
+  }, [aggs]);
+
+  // Only a filter whose facet actually has at least one option in the API
+  // response gets a pill at all — no disabled/empty pills rendered.
+  const filters = useMemo(() => ([
+    { key: 'subject', label: messages.filterSubject, options: facetOptions.subject || [] },
+    { key: 'org', label: messages.filterOrg, options: facetOptions.org || [] },
+    { key: 'modes', label: messages.filterModes, options: facetOptions.modes || [] },
+    { key: 'language', label: messages.filterLanguage, options: facetOptions.language || [] },
+    { key: 'level', label: messages.filterLevel, options: facetOptions.level || [] },
+  ].filter((f) => f.options.length > 0)), [facetOptions]);
+
+  const {
+    displayCourses, totalResults, totalPages, currentPage,
+  } = useMemo(() => {
+    const pages = Math.max(1, Math.ceil(apiTotal / PAGE_SIZE));
+    const safePage = Math.min(page, pages);
+    return {
+      displayCourses: apiCourses,
+      totalResults: apiTotal,
+      totalPages: pages,
+      currentPage: safePage,
+    };
+  }, [page, apiCourses, apiTotal]);
+
+  const heroAggs = browseMeta?.aggs || aggs;
+  const heroCourseCount = browseMeta?.total ?? apiTotal;
+  const heroOrgCount = heroAggs
+    ? countDistinctFacetValues(heroAggs, 'org')
+    : (facetOptions.org?.length || 0);
+  const heroSubjectCount = heroAggs
+    ? countDistinctFacetValues(heroAggs, 'subject')
+    : (facetOptions.subject?.length || 0);
+  const heroLanguageCount = heroAggs
+    ? countDistinctFacetValues(heroAggs, 'language')
+    : (facetOptions.language?.length || 0);
+
   useEffect(() => {
-    const nextQ = searchParams.get('q') ?? '';
+    const nextQ = parseQFromParams(searchParams);
     const nextSelected = parseSelectedFromParams(searchParams);
     const nextPage = Number(searchParams.get('page')) || 1;
     setQ((prev) => (prev === nextQ ? prev : nextQ));
@@ -121,46 +190,12 @@ const CoursesPage = () => {
     setQ(val);
     setPage(1);
     writeUrlRef.current(selectedRef.current, val, 1);
-  }, 200)).current;
+  }, 300)).current;
 
   useEffect(() => () => debouncedQ.cancel(), [debouncedQ]);
 
-  // Always apply filters client-side (works on live API data and mock fallback).
-  const filtered = useMemo(() => courses.filter((c) => {
-    const skills = Array.isArray(c.skills) ? c.skills : [];
-    const haystack = `${c.title || ''} ${c.org || ''} ${c.subject || ''} ${skills.join(' ')}`.toLowerCase();
-    if (q && !haystack.includes(q.toLowerCase())) {
-      return false;
-    }
-    if (selected.subject.length && !includesIgnoreCase(selected.subject, c.subject)) {
-      return false;
-    }
-    if (selected.org.length && !includesIgnoreCase(selected.org, c.org)) {
-      return false;
-    }
-    if (selected.type.length && !includesIgnoreCase(selected.type, c.type)) {
-      return false;
-    }
-    if (selected.language.length && !includesIgnoreCase(selected.language, c.language)) {
-      return false;
-    }
-    if (selected.level.length && !includesIgnoreCase(selected.level, c.level)) {
-      return false;
-    }
-    if (selected.skills.length) {
-      const courseSkillsLower = skills.map((s) => String(s).toLowerCase());
-      const hasSkill = selected.skills.some((s) => courseSkillsLower.includes(String(s).toLowerCase()));
-      if (!hasSkill) {
-        return false;
-      }
-    }
-    return true;
-  }), [courses, q, selected]);
-
-  const anyFilter = Object.values(selected).some((a) => a.length > 0) || !!q;
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const anyFilter = CATALOG_FACET_KEYS.some((key) => selected[key].length > 0) || !!q;
+  const showInitialLoading = isLoading && !catalogData;
 
   const toggle = (key, opt) => {
     setSelected((s) => {
@@ -196,7 +231,7 @@ const CoursesPage = () => {
   };
 
   const activeChips = [];
-  FILTER_KEYS.forEach((k) => {
+  CATALOG_FACET_KEYS.forEach((k) => {
     selected[k].forEach((v) => activeChips.push({ key: k, value: v }));
   });
   if (q) {
@@ -213,10 +248,10 @@ const CoursesPage = () => {
             {intl.formatMessage(messages.heroLead)}
           </p>
           <div className="tels-courses-hero__stats">
-            <div><strong>{isLoading ? '—' : courses.length}+</strong><span>{intl.formatMessage(messages.statCourses)}</span></div>
-            <div><strong>{ORGS.length}+</strong><span>{intl.formatMessage(messages.statOrgs)}</span></div>
-            <div><strong>{SUBJECTS.length}</strong><span>{intl.formatMessage(messages.statSubjects)}</span></div>
-            <div><strong>{LANGUAGES.length}</strong><span>{intl.formatMessage(messages.statLanguages)}</span></div>
+            <div><strong>{showInitialLoading ? '—' : `${heroCourseCount}+`}</strong><span>{intl.formatMessage(messages.statCourses)}</span></div>
+            <div><strong>{showInitialLoading ? '—' : `${heroOrgCount}+`}</strong><span>{intl.formatMessage(messages.statOrgs)}</span></div>
+            <div><strong>{showInitialLoading ? '—' : heroSubjectCount}</strong><span>{intl.formatMessage(messages.statSubjects)}</span></div>
+            <div><strong>{showInitialLoading ? '—' : heroLanguageCount}</strong><span>{intl.formatMessage(messages.statLanguages)}</span></div>
           </div>
         </div>
       </section>
@@ -242,7 +277,12 @@ const CoursesPage = () => {
             const label = intl.formatMessage(f.label);
             return (
               <div key={f.key} className="tels-courses__filter-wrap">
-                <button type="button" className={`tels-filterpill ${selected[f.key].length ? 'active' : ''}`} onClick={() => setOpenFilter(isOpen ? null : f.key)} aria-expanded={isOpen}>
+                <button
+                  type="button"
+                  className={`tels-filterpill ${selected[f.key].length ? 'active' : ''}`}
+                  onClick={() => setOpenFilter(isOpen ? null : f.key)}
+                  aria-expanded={isOpen}
+                >
                   {label}
                   {selected[f.key].length ? ` (${selected[f.key].length})` : ''}
                   <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} />
@@ -299,29 +339,43 @@ const CoursesPage = () => {
 
         <div className="tels-results-head">
           <h2 className="tels-courses__results-title">
-            {isLoading
+            {showInitialLoading
               ? <Skeleton w={180} h={22} />
-              : intl.formatMessage(messages.resultsCount, { count: filtered.length })}
-            {anyFilter && !isLoading && (
+              : intl.formatMessage(messages.resultsCount, { count: totalResults })}
+            {anyFilter && !showInitialLoading && (
               <span className="tels-muted tels-courses__matching">
                 {intl.formatMessage(messages.matchingFilters)}
               </span>
             )}
+            {isFetching && !showInitialLoading && (
+              <span className="tels-muted tels-courses__matching"> …</span>
+            )}
           </h2>
-          {!isLoading && filtered.length > 0 && (
+          {!showInitialLoading && totalResults > 0 && (
           <span className="tels-muted">
             {intl.formatMessage(messages.showingRange, {
               start: (currentPage - 1) * PAGE_SIZE + 1,
-              end: Math.min(currentPage * PAGE_SIZE, filtered.length),
-              total: filtered.length,
+              end: Math.min(currentPage * PAGE_SIZE, totalResults),
+              total: totalResults,
             })}
           </span>
           )}
         </div>
 
-        {isLoading && <LoadingScreen variant="courses" count={12} cols={4} showLabel={false} />}
+        {showInitialLoading && <LoadingScreen variant="courses" count={12} cols={4} showLabel={false} />}
 
-        {!isLoading && filtered.length === 0 && (
+        {!showInitialLoading && isError && (
+        <div className="tels-empty" role="alert">
+          <h3 className="tels-h3">{intl.formatMessage(messages.errorTitle)}</h3>
+          {/* API's own error message takes priority; local message is only a fallback. */}
+          <p className="tels-muted">{displayApiError(error, intl, messages.errorFallbackBody)}</p>
+          <button type="button" className="tels-btn tels-btn--primary" onClick={() => refetch()}>
+            {intl.formatMessage(messages.retry)}
+          </button>
+        </div>
+        )}
+
+        {!showInitialLoading && !isError && totalResults === 0 && (
         <div className="tels-empty">
           <h3 className="tels-h3">{intl.formatMessage(messages.emptyTitle)}</h3>
           <p className="tels-muted">{intl.formatMessage(messages.emptyBody)}</p>
@@ -329,10 +383,10 @@ const CoursesPage = () => {
         </div>
         )}
 
-        {!isLoading && filtered.length > 0 && (
+        {!showInitialLoading && !isError && totalResults > 0 && (
         <>
           <div className="tels-grid tels-grid--4">
-            {pageItems.map((c) => <CourseCard key={c.id} course={c} />)}
+            {displayCourses.map((c) => <CourseCard key={c.id} course={c} />)}
           </div>
           {totalPages > 1 && (
           <nav className="tels-pagination" aria-label={intl.formatMessage(messages.paginationAria)}>

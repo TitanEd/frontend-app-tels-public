@@ -29,14 +29,17 @@ FAIL       → what backend returns on error + what frontend does
 
 ## Endpoint index
 
+Live wiring uses Template A **control-panel** routes where they exist.
+Home promo stays on the planned TitanEd path until control-panel adds it.
+
 | # | Endpoint | Method | Used by |
 |---|----------|--------|---------|
-| 1 | `/search/unstable/v0/course_list_search/` **or** `/api/tels/v1/courses/search/` | POST | Home popular + Courses catalog |
-| 2 | `/api/courseware/course/{courseId}` **or** `/api/tels/v1/courses/{id}/` | GET | Course detail |
-| 3 | `/change_enrollment` | POST | Enroll now |
-| 4 | `/api/tels/v1/courses/{id}/suggested/` | GET | Suggested courses |
-| 5 | `/api/tels/v1/home/promo/` | GET | Home promo video |
-| 6 | `/api/tels/v1/contact/` | POST | Contact form |
+| 1 | `/api/v1/catalog/courses/` | POST | Home popular + Courses catalog |
+| 2 | `/api/v1/catalog/courses/{course_key}` | GET | Course detail (slug → search then detail) |
+| 3 | `/api/v1/catalog/change-enrollment/` | POST | Enroll now |
+| 4 | `/api/v1/catalog/courses/{course_key}/recommendations/` | GET | Suggested courses |
+| 5 | `/api/tels/v1/home/promo/` | GET | Home promo video (deferred backend) |
+| 6 | `/api/v1/contact-us/` | POST | Contact form |
 
 ---
 
@@ -44,13 +47,10 @@ FAIL       → what backend returns on error + what frontend does
 
 ### API
 ```
-POST {BASE}/search/unstable/v0/course_list_search/
-```
-**TitanEd wrapper (if enriching LMS):**
-```
-POST {BASE}/api/tels/v1/courses/search/
+POST {BASE}/api/v1/catalog/courses/
 Content-Type: application/json
 ```
+(Template A control-panel `course_metadata.CourseListView`)
 
 ### PAYLOAD (frontend sends)
 
@@ -75,8 +75,10 @@ Content-Type: application/json
 | `org` | no | string[] | `["OpenedX"]` | |
 | `language` | no | string[] | `["en"]` | |
 | `modes` | no | string[] | `["audit"]` | |
-| `subject` | no | string[] | `["Technology"]` | TitanEd enriched |
-| `level` | no | string[] | `["Introductory"]` | TitanEd enriched |
+| `subject` | no | string[] | `["Technology"]` | Category / subject facet |
+| `level` | no | string[] | `["Introductory"]` | Difficulty facet |
+
+**Courses page:** search + filter pills send the fields above on every change; **filter option lists** come from the POST response `aggs` block (`subject`, `org`, `language`, `modes`, `level` — terms sorted by count). Pagination uses `page_size` / `page_index` server-side. Legacy home links with `?skills=` merge into `search_string`.
 
 **Home popular payload example:**
 ```json
@@ -190,30 +192,23 @@ Content-Type: application/json
 
 ### API
 ```
-GET {BASE}/api/courseware/course/{courseId}
+GET {BASE}/api/v1/catalog/courses/{course_key}
 ```
-**TitanEd wrapper:**
-```
-GET {BASE}/api/tels/v1/courses/{courseId}/
-```
-`{courseId}` = `course-v1:Org+Number+Run` (or resolve from `slug` if backend supports it).
+(Template A control-panel `course_metadata.CourseDetailView`)
+
+`{course_key}` = `course-v1:Org+Number+Run`. Marketing slugs are resolved by searching the catalog, then calling this detail URL (no by-slug route in control-panel).
 
 ### PAYLOAD (frontend sends)
 
-**Path / query only (no body):**
+**Path only (no body):**
 
 | Param | Required | Example |
 |-------|----------|---------|
-| `courseId` (path) | **yes** | `course-v1:OpenedX+DemoX+DemoCourse` |
-| `slug` (query, optional) | no | `open-edx-demo-course` |
+| `course_key` (path) | **yes** | `course-v1:OpenedX+DemoX+DemoCourse` |
 
 Example:
 ```
-GET {BASE}/api/tels/v1/courses/course-v1:OpenedX+DemoX+DemoCourse/
-```
-or
-```
-GET {BASE}/api/tels/v1/courses/by-slug/open-edx-demo-course/
+GET {BASE}/api/v1/catalog/courses/course-v1:OpenedX+DemoX+DemoCourse
 ```
 
 ### SUCCESS (backend returns)
@@ -377,19 +372,13 @@ GET {BASE}/api/tels/v1/courses/by-slug/open-edx-demo-course/
 
 ### API
 ```
-POST {BASE}/change_enrollment
-Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+POST {BASE}/api/v1/catalog/change-enrollment/
+Content-Type: application/json
 ```
-(Existing LMS — keep this contract.)
+(Template A control-panel `course_metadata.ChangeEnrollmentView`)
 
 ### PAYLOAD (frontend sends)
 
-**Form body (not JSON):**
-```
-course_id=course-v1%3AOpenedX%2BDemoX%2BDemoCourse&enrollment_action=enroll
-```
-
-Same as object:
 ```json
 {
   "course_id": "course-v1:OpenedX+DemoX+DemoCourse",
@@ -483,9 +472,10 @@ Same as object:
 
 ### API
 ```
-GET {BASE}/api/tels/v1/courses/{courseId}/suggested/
+GET {BASE}/api/v1/catalog/courses/{course_key}/recommendations/?limit=4
 ```
-**or** nest `suggested_courses` on API 2 success (same item shape).
+(Template A control-panel `course_metadata.CourseRecommendationsView`)  
+**or** nest `suggested_courses` on API 2 success (same item `data` shape; auth users only).
 
 ### PAYLOAD (frontend sends)
 
@@ -493,12 +483,12 @@ GET {BASE}/api/tels/v1/courses/{courseId}/suggested/
 
 | Param | Required | Example |
 |-------|----------|---------|
-| `courseId` (path) | **yes** | `course-v1:OpenedX+DemoX+DemoCourse` |
-| `limit` (query) | no | `4` (default) |
+| `course_key` (path) | **yes** | `course-v1:OpenedX+DemoX+DemoCourse` |
+| `limit` (query) | no | `4` (default 10 on backend) |
 
 Example:
 ```
-GET {BASE}/api/tels/v1/courses/course-v1:OpenedX+DemoX+DemoCourse/suggested/?limit=4
+GET {BASE}/api/v1/catalog/courses/course-v1:OpenedX+DemoX+DemoCourse/recommendations/?limit=4
 ```
 
 ### SUCCESS (backend returns)
@@ -568,6 +558,7 @@ Card fields same as API 1 (`id`, `display_name`, `org`, `image_url`, marketing f
 ```
 GET {BASE}/api/tels/v1/home/promo/
 ```
+(Deferred — keep this path until control-panel adds a promo API. Frontend falls back to mock media.)
 
 ### PAYLOAD (frontend sends)
 
@@ -626,9 +617,10 @@ None (GET, no body). Optional later: `?locale=en`.
 
 ### API
 ```
-POST {BASE}/api/tels/v1/contact/
+POST {BASE}/api/v1/contact-us/
 Content-Type: application/json
 ```
+(Template A control-panel `contat_us.ContactUsAPIView`)
 
 ### PAYLOAD (frontend sends)
 
@@ -639,9 +631,7 @@ Content-Type: application/json
   "org": "Analytical Engines",
   "subject": "Partnership",
   "message": "We want a demo of TELS for our institution.",
-  "consent": true,
-  "source_page": "/public/contact",
-  "locale": "en"
+  "consent": true
 }
 ```
 
@@ -652,9 +642,7 @@ Content-Type: application/json
 | `org` | no | string |
 | `subject` | **yes** | string |
 | `message` | **yes** | string |
-| `consent` | **yes** | boolean (`true`) |
-| `source_page` | no | string |
-| `locale` | no | string |
+| `consent` | no | boolean (defaults false on backend) |
 
 ### SUCCESS (backend returns)
 
@@ -671,9 +659,7 @@ Content-Type: application/json
     "org": "Analytical Engines",
     "subject": "Partnership",
     "message": "We want a demo of TELS for our institution.",
-    "consent": true,
-    "source_page": "/public/contact",
-    "locale": "en"
+    "consent": true
   }
 }
 ```
@@ -739,25 +725,26 @@ Content-Type: application/json
 
 # Backend checklist
 
-- [ ] **#1** Course list POST — accept payload above; return success JSON (+ `aggs`)
-- [ ] **#2** Course detail GET — return full detail JSON
-- [ ] **#3** Enroll POST — LMS `change_enrollment` (403 login + 400 fail shapes)
-- [ ] **#4** Suggested GET — or nest on #2
-- [ ] **#5** Home promo GET
-- [ ] **#6** Contact POST — accept payload; return 201 success + 400 validation fail
+- [x] **#1** Course list — control-panel `POST /api/v1/catalog/courses/`
+- [x] **#2** Course detail — control-panel `GET /api/v1/catalog/courses/{course_key}`
+- [x] **#3** Enroll — control-panel `POST /api/v1/catalog/change-enrollment/`
+- [x] **#4** Suggested — control-panel `GET .../recommendations/` (also nest on #2 for auth users)
+- [ ] **#5** Home promo — deferred (`/api/tels/v1/home/promo/` until control-panel adds it)
+- [x] **#6** Contact — control-panel `POST /api/v1/contact-us/`
 
 ---
 
 # Frontend checklist (when coding later)
 
-- [ ] Call each API with correct method + payload
-- [ ] On success → map JSON → UI
-- [ ] On fail / missing field → mock / toast / redirect per tables above
-- [ ] Never blank Popular / Catalog / Detail on API error
-- [ ] Never fake successful enrollment
+- [x] Call each live API with control-panel method + payload
+- [x] On success → map JSON → UI
+- [x] On fail / missing field → mock / toast / redirect per tables above
+- [x] Never blank Popular / Catalog / Detail on API error
+- [x] Never fake successful enrollment
+- [ ] Wire Home promo when control-panel ships it (path kept)
 
 ---
 
 # One-line for backend
 
-For each of **#1–#6**: implement **API → PAYLOAD → SUCCESS → FAIL** exactly as written; frontend will call them and fall back to mock when response data is unavailable.
+**#1–#4 and #6** already ship in Template A control-panel — Public MFE now calls those URLs. **#5 Home promo** remains planned until control-panel implements it; frontend keeps mock fallback.

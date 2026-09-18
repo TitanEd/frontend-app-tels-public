@@ -1,37 +1,37 @@
 import { camelCaseObject } from '@edx/frontend-platform';
 
-import {
-  COURSES,
-} from '../telsData';
-import { getHttpClient, isHttpError, logApiFailure } from './http';
+import { getHttpClient, getHttpStatus, logApiFailure } from './http';
 import { isCourseKey, mapDetailToCourse, mapSearchHitToCourse } from './mappers';
 import {
-  getCourseAboutUrl,
-  getCourseListSearchUrl,
-  getSuggestedCoursesUrl,
-  getTelsCourseBySlugUrl,
-  getTelsCourseDetailUrl,
-  getTelsCourseSearchUrl,
+  getCatalogCourseDetailUrl,
+  getCatalogCoursesUrl,
+  getCatalogRecommendationsUrl,
 } from './urls';
 
-const findMockCourse = (idOrSlug) => (
-  COURSES.find((c) => c.id === idOrSlug || c.courseKey === idOrSlug) || null
-);
-
-const appendFilters = (formData, filters = {}) => {
-  Object.entries(filters).forEach(([key, values]) => {
-    if (!Array.isArray(values)) {
-      return;
-    }
-    values.filter((v) => v !== undefined && v !== null && v !== '').forEach((value) => {
-      formData.append(key, value);
-    });
-  });
+/**
+ * Build the Error thrown for any failed catalog request.
+ * API message (if any) is stored for display; local UI copy must use
+ * intl.formatMessage — never rely on English embedded here for i18n.
+ */
+const buildApiError = (error, code = 'API_ERROR') => {
+  const status = getHttpStatus(error);
+  const responseData = camelCaseObject(error?.response?.data) || {};
+  const apiMessage = responseData?.error?.message
+    || (typeof responseData?.error === 'string' ? responseData.error : null)
+    || responseData?.message
+    || responseData?.detail
+    || responseData?.developerMessage
+    || null;
+  const apiError = new Error(apiMessage || '');
+  apiError.status = status;
+  apiError.fromApi = !!apiMessage;
+  apiError.code = code;
+  return apiError;
 };
 
 /**
- * POST course list search (Open edX catalog pattern).
- * Tries LMS search first; optional TitanEd wrapper on failure.
+ * POST control-panel faceted course search
+ * (`course_metadata.CourseListView` / `catalog_search.search_courses`).
  */
 const postCourseSearch = async ({
   pageSize = 12,
@@ -39,38 +39,23 @@ const postCourseSearch = async ({
   searchString = '',
   filters = {},
 }) => {
-  const formData = new FormData();
-  formData.append('page_size', String(pageSize));
-  formData.append('page_index', String(pageIndex));
-  formData.append('enable_course_sorting_by_start_date', 'false');
-  if (searchString) {
-    formData.append('search_string', searchString);
-  }
-  appendFilters(formData, filters);
+  const body = {
+    page_size: pageSize,
+    page_index: pageIndex,
+    ...(searchString ? { search_string: searchString } : {}),
+    ...filters,
+  };
 
-  const client = getHttpClient();
-  try {
-    const { data } = await client.post(getCourseListSearchUrl(), formData);
-    return camelCaseObject(data);
-  } catch (lmsError) {
-    logApiFailure('course_list_search LMS failed; trying TitanEd wrapper', lmsError);
-    try {
-      const { data } = await client.post(getTelsCourseSearchUrl(), {
-        page_size: pageSize,
-        page_index: pageIndex,
-        search_string: searchString || undefined,
-        ...filters,
-      });
-      return camelCaseObject(data);
-    } catch (telsError) {
-      logApiFailure('course_list_search TitanEd wrapper failed', telsError);
-      throw telsError;
-    }
-  }
+  const { data } = await getHttpClient().post(getCatalogCoursesUrl(), body, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return camelCaseObject(data);
 };
 
 /**
- * Fetch courses for Home / Catalog. Never throws — falls back to mock.
+ * Fetch courses for Home / Catalog. Throws a real Error (API message first,
+ * generic local message as fallback) on failure — callers (react-query)
+ * surface this via isError/error rather than silently rendering mock data.
  */
 export async function fetchCourses(params = {}) {
   const {
@@ -86,155 +71,119 @@ export async function fetchCourses(params = {}) {
     });
     const results = Array.isArray(data?.results) ? data.results : [];
     const courses = results
-      .map((hit) => {
-        const hitData = hit?.data || {};
-        // eslint-disable-next-line no-underscore-dangle -- Open edX search hit id
-        const courseKey = hitData.id || hitData.course || hit?._id;
-        const mock = findMockCourse(courseKey) || findMockCourse(hitData.slug);
-        return mapSearchHitToCourse(hit, mock);
-      })
+      .map((hit) => mapSearchHitToCourse(hit))
       .filter((c) => c?.id);
-
-    if (!courses.length) {
-      return {
-        courses: COURSES,
-        total: COURSES.length,
-        fromFallback: true,
-        aggs: null,
-      };
-    }
 
     return {
       courses,
       total: typeof data.total === 'number' ? data.total : courses.length,
-      fromFallback: false,
       aggs: data.aggs || null,
     };
   } catch (error) {
-    logApiFailure('fetchCourses → mock COURSES', error);
-    return {
-      courses: COURSES,
-      total: COURSES.length,
-      fromFallback: true,
-      aggs: null,
-    };
+    logApiFailure('fetchCourses failed', error);
+    throw buildApiError(error, 'COURSES_LOAD_FAILED');
   }
 }
 
 /**
- * Convenience for pages that only need the course array (react-query).
+ * Convenience for pages that only need the course array.
  */
 export async function fetchCoursesList(params) {
   const result = await fetchCourses(params);
   return result.courses;
 }
 
-const fetchDetailFromLms = async (courseId) => {
-  const { data } = await getHttpClient().get(getCourseAboutUrl(courseId));
-  return camelCaseObject(data);
-};
-
-const fetchDetailFromTels = async (courseId) => {
-  const { data } = await getHttpClient().get(getTelsCourseDetailUrl(courseId));
-  return camelCaseObject(data);
-};
-
-const fetchDetailBySlug = async (slug) => {
-  const { data } = await getHttpClient().get(getTelsCourseBySlugUrl(slug));
+const fetchDetailFromCatalog = async (courseId) => {
+  const { data } = await getHttpClient().get(getCatalogCourseDetailUrl(courseId));
   return camelCaseObject(data);
 };
 
 /**
+ * Resolve a marketing slug to a course key via catalog search, then load
+ * detail. Control-panel has no by-slug route.
+ */
+const fetchDetailBySlug = async (slug) => {
+  const search = await postCourseSearch({
+    pageSize: 20,
+    pageIndex: 0,
+    searchString: slug,
+  });
+  const hit = (search?.results || []).find((r) => {
+    const d = r?.data || {};
+    return d.slug === slug
+      || d.id === slug
+      || (d.content?.displayName || d.content?.display_name || '').toLowerCase() === slug.toLowerCase();
+  });
+  const courseKey = hit?.data?.id || hit?.data?.course;
+  if (!courseKey) {
+    return hit ? { fromSearchHit: hit } : null;
+  }
+  try {
+    return await fetchDetailFromCatalog(courseKey);
+  } catch (detailError) {
+    logApiFailure('catalog detail after slug search failed; using search hit', detailError);
+    return { fromSearchHit: hit };
+  }
+};
+
+/**
  * Fetch one course by LMS key or marketing slug.
- * Never throws — returns mock match or null.
+ * Returns null when the course is not found (404 / no match).
+ * Throws (API message first, local fallback second) on other failures.
  */
 export async function fetchCourse(idOrSlug) {
   if (!idOrSlug) {
     return null;
   }
 
-  const mock = findMockCourse(idOrSlug);
-
   try {
     let raw = null;
 
     if (isCourseKey(idOrSlug)) {
-      try {
-        raw = await fetchDetailFromLms(idOrSlug);
-      } catch (lmsError) {
-        logApiFailure('courseware detail failed; trying TitanEd detail', lmsError);
-        raw = await fetchDetailFromTels(idOrSlug);
-      }
+      raw = await fetchDetailFromCatalog(idOrSlug);
     } else {
-      try {
-        raw = await fetchDetailBySlug(idOrSlug);
-      } catch (slugError) {
-        if (!isHttpError(slugError, 404)) {
-          logApiFailure('tels by-slug failed', slugError);
-        }
-        // Try search by string as last live attempt
-        try {
-          const search = await postCourseSearch({
-            pageSize: 5,
-            pageIndex: 0,
-            searchString: idOrSlug,
-          });
-          const hit = (search?.results || []).find((r) => {
-            const d = r?.data || {};
-            return d.slug === idOrSlug
-              || d.id === idOrSlug
-              || (d.content?.displayName || '').toLowerCase().includes(idOrSlug);
-          }) || search?.results?.[0];
-          if (hit?.data?.id) {
-            try {
-              raw = await fetchDetailFromLms(hit.data.id);
-            } catch {
-              return mapSearchHitToCourse(hit, mock);
-            }
-          }
-        } catch (searchError) {
-          logApiFailure('slug search fallback failed', searchError);
-        }
+      raw = await fetchDetailBySlug(idOrSlug);
+      if (raw?.fromSearchHit) {
+        return mapSearchHitToCourse(raw.fromSearchHit);
       }
     }
 
-    if (raw) {
-      return mapDetailToCourse(raw, mock);
-    }
+    return raw ? mapDetailToCourse(raw) : null;
   } catch (error) {
-    logApiFailure('fetchCourse → mock', error);
+    const status = getHttpStatus(error);
+    if (status === 404) {
+      return null;
+    }
+    logApiFailure('fetchCourse failed', error);
+    throw buildApiError(error, 'COURSE_DETAIL_LOAD_FAILED');
   }
-
-  return mock || null;
 }
 
 /**
- * Suggested / related courses. Falls back to same-subject mock list.
+ * Suggested / related courses via control-panel recommendations.
+ * Falls back to detail.suggestedCourses (already part of the real API
+ * response), then an empty list — never mock courses.
  */
 export async function fetchSuggestedCourses(course, limit = 4) {
   const courseKey = course?.courseKey || course?.id;
-  const mockRelated = COURSES
-    .filter((c) => c.subject === course?.subject && c.id !== course?.id)
-    .slice(0, limit);
 
   if (Array.isArray(course?.suggestedCourses) && course.suggestedCourses.length) {
     return course.suggestedCourses.slice(0, limit);
   }
 
   if (!courseKey || !isCourseKey(courseKey)) {
-    return mockRelated;
+    return [];
   }
 
   try {
-    const { data } = await getHttpClient().get(getSuggestedCoursesUrl(courseKey), {
+    const { data } = await getHttpClient().get(getCatalogRecommendationsUrl(courseKey), {
       params: { limit },
     });
     const payload = camelCaseObject(data);
     const results = Array.isArray(payload?.results) ? payload.results : [];
-    const mapped = results.map((hit) => mapSearchHitToCourse(hit)).filter((c) => c?.id);
-    return mapped.length ? mapped.slice(0, limit) : mockRelated;
+    return results.map((hit) => mapSearchHitToCourse(hit)).filter((c) => c?.id).slice(0, limit);
   } catch (error) {
-    logApiFailure('fetchSuggestedCourses → mock related', error);
-    return mockRelated;
+    logApiFailure('fetchSuggestedCourses failed', error);
+    return [];
   }
 }

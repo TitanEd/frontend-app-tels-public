@@ -22,22 +22,36 @@ import {
 import CourseCard from '../../components/CourseCard';
 import LoadingScreen from '../../components/LoadingScreen';
 import { fetchCoursesList, fetchHomePromo } from '../../data/api';
-import { PARTNER_LOGOS } from '../../data/telsData';
+import { displayApiError } from '../../lib/displayApiError';
 import useDocumentTitle from '../../lib/useDocumentTitle';
+import { CATALOG_LINKS, catalogHref } from '../../lib/catalogLinks';
+// Bundled locally — no external image links. `.webp` needs the file-loader
+// named explicitly inline: the shared webpack config's image rule only
+// matches jpe?g|png|gif, not webp (verified with a standalone build); the
+// project's own webpack.*-tutor.config.js overrides are gitignored/
+// generated, not real editable config, so this is the durable fix.
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+import solutionsBusinessImg from '!!file-loader!../../assets/home/collaborative-learning.webp';
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+import solutionsEducationImg from '!!file-loader!../../assets/home/classroom-education.webp';
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+import insight1Img from '!!file-loader!../../assets/home/insight-1.webp';
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+import insight2Img from '!!file-loader!../../assets/home/insight-2.webp';
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+import insight3Img from '!!file-loader!../../assets/home/insight-3.webp';
 import messages from './messages';
 import './HomePage.scss';
 
-const SOLUTIONS_BUSINESS_IMG = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=75';
-const SOLUTIONS_EDUCATION_IMG = 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1200&q=75';
-const INSIGHT_IMAGES = [
-  'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=70',
-  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=70',
-  'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=900&q=70',
-];
+const SOLUTIONS_BUSINESS_IMG = solutionsBusinessImg;
+const SOLUTIONS_EDUCATION_IMG = solutionsEducationImg;
+const INSIGHT_IMAGES = [insight1Img, insight2Img, insight3Img];
 const HomePage = () => {
   const intl = useIntl();
   useDocumentTitle(intl.formatMessage(messages.pageTitle));
-  const { data: courses = [], isLoading } = useQuery({
+  const {
+    data: courses = [], isLoading, isError, error, refetch,
+  } = useQuery({
     queryKey: ['courses', 'home', 4],
     queryFn: () => fetchCoursesList({ pageSize: 4, pageIndex: 0 }),
   });
@@ -56,6 +70,7 @@ const HomePage = () => {
       titleAccent: messages.hero1TitleAccent,
       body: messages.hero1Body,
       cta: messages.hero1Cta,
+      to: CATALOG_LINKS.all,
     },
     {
       eyebrow: messages.hero2Eyebrow,
@@ -63,6 +78,7 @@ const HomePage = () => {
       titleAccent: messages.hero2TitleAccent,
       body: messages.hero2Body,
       cta: messages.hero2Cta,
+      to: '/contact',
     },
     {
       eyebrow: messages.hero3Eyebrow,
@@ -70,32 +86,33 @@ const HomePage = () => {
       titleAccent: messages.hero3TitleAccent,
       body: messages.hero3Body,
       cta: messages.hero3Cta,
+      to: CATALOG_LINKS.certificatePrograms,
     },
   ];
   const categories = [
     {
-      icon: faLaptopCode, title: messages.catAiTitle, body: messages.catAiBody, to: '/courses?subject=Technology&q=AI',
+      icon: faLaptopCode, title: messages.catAiTitle, body: messages.catAiBody, to: catalogHref({ subject: 'Technology', q: 'AI' }),
     },
     {
-      icon: faChartLine, title: messages.catDataTitle, body: messages.catDataBody, to: '/courses?subject=Data',
+      icon: faChartLine, title: messages.catDataTitle, body: messages.catDataBody, to: catalogHref({ subject: 'Data' }),
     },
     {
-      icon: faCloud, title: messages.catCloudTitle, body: messages.catCloudBody, to: '/courses?subject=Technology&q=Cloud',
+      icon: faCloud, title: messages.catCloudTitle, body: messages.catCloudBody, to: catalogHref({ subject: 'Technology', q: 'Cloud' }),
     },
     {
-      icon: faBriefcase, title: messages.catLeadTitle, body: messages.catLeadBody, to: '/courses?subject=Leadership',
+      icon: faBriefcase, title: messages.catLeadTitle, body: messages.catLeadBody, to: catalogHref({ subject: 'Leadership' }),
     },
     {
-      icon: faHeartbeat, title: messages.catHealthTitle, body: messages.catHealthBody, to: '/courses?subject=Health',
+      icon: faHeartbeat, title: messages.catHealthTitle, body: messages.catHealthBody, to: catalogHref({ subject: 'Health' }),
     },
     {
-      icon: faShieldAlt, title: messages.catSecTitle, body: messages.catSecBody, to: '/courses?subject=Technology&skills=Security',
+      icon: faShieldAlt, title: messages.catSecTitle, body: messages.catSecBody, to: catalogHref({ subject: 'Technology', skills: 'Security' }),
     },
     {
-      icon: faLeaf, title: messages.catSusTitle, body: messages.catSusBody, to: '/courses?q=Sustainability',
+      icon: faLeaf, title: messages.catSusTitle, body: messages.catSusBody, to: catalogHref({ q: 'Sustainability' }),
     },
     {
-      icon: faLightbulb, title: messages.catUxTitle, body: messages.catUxBody, to: '/courses?subject=Business&q=Product',
+      icon: faLightbulb, title: messages.catUxTitle, body: messages.catUxBody, to: catalogHref({ subject: 'Business', q: 'Product' }),
     },
   ];
   const insights = [
@@ -129,7 +146,7 @@ const HomePage = () => {
               </h1>
               <p className="lead">{intl.formatMessage(current.body)}</p>
               <div className="tels-hero__cta">
-                <Link to="/courses" className="tels-btn tels-btn--primary tels-btn--lg">
+                <Link to={current.to} className="tels-btn tels-btn--primary tels-btn--lg">
                   {intl.formatMessage(current.cta)} <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
               </div>
@@ -140,14 +157,6 @@ const HomePage = () => {
           </div>
         </div>
 
-        <div className="tels-trusted">
-          <div className="tels-container">
-            <p className="tels-trusted__label">{intl.formatMessage(messages.trustedBy)}</p>
-            <div className="tels-trusted__row">
-              {PARTNER_LOGOS.map((p) => <img key={p} src={p} alt={intl.formatMessage(messages.partnerAlt)} />)}
-            </div>
-          </div>
-        </div>
       </section>
 
       <section className="tels-section tels-section--subtle">
@@ -196,20 +205,20 @@ const HomePage = () => {
               <h2 className="tels-h2">{intl.formatMessage(messages.curriculumTitle)}</h2>
               <p className="tels-lead">{intl.formatMessage(messages.curriculumLead)}</p>
               <div className="tels-home__features">
-                <div className="tels-evergreen__feature">
+                <Link to={CATALOG_LINKS.professionalCertificates} className="tels-evergreen__feature">
                   <span className="tels-evergreen__feature-icon"><FontAwesomeIcon icon={faCertificate} /></span>
                   <div>
                     <h4>{intl.formatMessage(messages.certTitle)}</h4>
                     <p>{intl.formatMessage(messages.certBody)}</p>
                   </div>
-                </div>
-                <div className="tels-evergreen__feature">
+                </Link>
+                <Link to={CATALOG_LINKS.learningPathways} className="tels-evergreen__feature">
                   <span className="tels-evergreen__feature-icon"><FontAwesomeIcon icon={faGraduationCap} /></span>
                   <div>
                     <h4>{intl.formatMessage(messages.pathwaysTitle)}</h4>
                     <p>{intl.formatMessage(messages.pathwaysBody)}</p>
                   </div>
-                </div>
+                </Link>
                 <div className="tels-evergreen__feature">
                   <span className="tels-evergreen__feature-icon"><FontAwesomeIcon icon={faBookOpen} /></span>
                   <div>
@@ -218,7 +227,7 @@ const HomePage = () => {
                   </div>
                 </div>
               </div>
-              <Link to="/courses" className="tels-btn tels-btn--primary tels-btn--lg tels-home__explore-btn">
+              <Link to={CATALOG_LINKS.all} className="tels-btn tels-btn--primary tels-btn--lg tels-home__explore-btn">
                 {intl.formatMessage(messages.exploreAllCourses)}
               </Link>
             </div>
@@ -238,6 +247,7 @@ const HomePage = () => {
         </div>
       </section>
 
+      {(isLoading || featured.length > 0 || isError) && (
       <section className="tels-section tels-section--warm">
         <div className="tels-container">
           <div className="tels-section-row__head">
@@ -245,14 +255,26 @@ const HomePage = () => {
               <div className="tels-eyebrow">{intl.formatMessage(messages.featuredEyebrow)}</div>
               <h2 className="tels-h2 tels-home__heading">{intl.formatMessage(messages.featuredTitle)}</h2>
             </div>
+            {!isError && (
             <Link to="/courses" className="tels-link">
               {intl.formatMessage(messages.showAllCourses)} <FontAwesomeIcon icon={faArrowRight} />
             </Link>
+            )}
           </div>
           <div className="tels-home__featured-grid">
-            {isLoading ? (
-              <LoadingScreen variant="courses" count={4} cols={4} showLabel={false} />
-            ) : (
+            {isLoading && <LoadingScreen variant="courses" count={4} cols={4} showLabel={false} />}
+            {!isLoading && isError && (
+              <div className="tels-empty">
+                <h3 className="tels-h3">{intl.formatMessage(messages.featuredErrorTitle)}</h3>
+                <p className="tels-muted">
+                  {displayApiError(error, intl, messages.featuredErrorBody)}
+                </p>
+                <button type="button" className="tels-btn tels-btn--primary" onClick={() => refetch()}>
+                  {intl.formatMessage(messages.featuredRetry)}
+                </button>
+              </div>
+            )}
+            {!isLoading && !isError && featured.length > 0 && (
               <div className="tels-grid tels-grid--4">
                 {featured.map((c) => <CourseCard key={c.id} course={c} />)}
               </div>
@@ -260,18 +282,34 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      )}
 
+      {/* Real promo video from the API only — no fake sample video, and the
+          whole section is hidden when there's nothing real to show. */}
+      {promo && (promo.videoUrl || promo.youtubeId) && (
       <section className="tels-promo-light">
         <div className="tels-container">
-          <h2>{promo?.title || intl.formatMessage(messages.promoTitle)}</h2>
+          {(promo.title || intl.formatMessage(messages.promoTitle)) && (
+            <h2>{promo.title || intl.formatMessage(messages.promoTitle)}</h2>
+          )}
           <div className="tels-promo-light__video">
-            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-            <video controls preload="metadata" poster={promoPoster} playsInline>
-              {promoVideoSrc && <source src={promoVideoSrc} type="video/mp4" />}
-            </video>
+            {promo.youtubeId ? (
+              <iframe
+                title={promo.title || intl.formatMessage(messages.promoTitle)}
+                src={`https://www.youtube-nocookie.com/embed/${promo.youtubeId}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              // eslint-disable-next-line jsx-a11y/media-has-caption
+              <video controls preload="metadata" poster={promoPoster || undefined} playsInline>
+                {promoVideoSrc && <source src={promoVideoSrc} type="video/mp4" />}
+              </video>
+            )}
           </div>
         </div>
       </section>
+      )}
 
       <section className="tels-section">
         <div className="tels-container">
@@ -304,7 +342,16 @@ const HomePage = () => {
             {insights.map((i, idx) => (
               <article key={i.title.id} className="tels-insight">
                 <div className="tels-insight__img tels-insight__img--photo">
-                  <img src={INSIGHT_IMAGES[idx]} alt="" loading="lazy" />
+                  <img
+                    src={INSIGHT_IMAGES[idx]}
+                    alt=""
+                    loading="lazy"
+                    // If the external photo fails to load, hide the broken
+                    // <img> rather than show a broken-image icon — the
+                    // card's own gradient background (.tels-insight__img)
+                    // already sits behind it as a visual fallback.
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
                   <span className={`tels-insight__tag${i.accent ? ' tels-insight__tag--accent' : ''}`}>
                     {intl.formatMessage(i.tag)}
                   </span>
@@ -313,17 +360,6 @@ const HomePage = () => {
                 <p>{intl.formatMessage(i.body)}</p>
               </article>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="tels-section tels-section--warm">
-        <div className="tels-container">
-          <div className="tels-stats">
-            <div><div className="n">20K+</div><div className="l">{intl.formatMessage(messages.statInitiatives)}</div></div>
-            <div><div className="n">2M+</div><div className="l">{intl.formatMessage(messages.statLearners)}</div></div>
-            <div><div className="n">120+</div><div className="l">{intl.formatMessage(messages.statPartners)}</div></div>
-            <div><div className="n">40+</div><div className="l">{intl.formatMessage(messages.statCountries)}</div></div>
           </div>
         </div>
       </section>

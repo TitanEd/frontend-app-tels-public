@@ -96,5 +96,30 @@ const messages = defineMessages({
     defaultMessage: 'Powered by Open edX® · TELS by TitanEd',
     description: 'Footer powered-by line',
   },
+  siteNameFallback: {
+    id: 'indigo.footer.site-name-fallback',
+    defaultMessage: 'TitanEd',
+    description: 'Fallback site name when SITE_NAME config is missing',
+  },
+  contactEmailFallback: {
+    id: 'indigo.footer.contact.email-fallback',
+    defaultMessage: 'Legal@TitanEd.com',
+    description: 'Fallback footer contact email when INDIGO_FOOTER_CONTACT.email is unset',
+  },
+  contactWebUrlFallback: {
+    id: 'indigo.footer.contact.web-url-fallback',
+    defaultMessage: 'https://titaned.com/',
+    description: 'Fallback footer website URL',
+  },
+  contactWebLabelFallback: {
+    id: 'indigo.footer.contact.web-label-fallback',
+    defaultMessage: 'titaned.com',
+    description: 'Fallback footer website label',
+  },
+  contactAddressFallback: {
+    id: 'indigo.footer.contact.address-fallback',
+    defaultMessage: 'TitanEd, Gurugram,\nHaryana, India',
+    description: 'Fallback footer address lines (newline-separated)',
+  },
 });
 export default messages;

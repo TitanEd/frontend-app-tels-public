@@ -34,7 +34,7 @@ const DEFAULT_SUPPORT_LINKS = [
 const IndigoFooter = () => {
   const intl = useIntl();
   const config = getConfig();
-  const siteName = config.SITE_NAME || 'TitanEd';
+  const siteName = config.SITE_NAME || intl.formatMessage(messages.siteNameFallback);
   const year = new Date().getFullYear();
   const logoUrl = config.LOGO_URL
         || config.LOGO_WHITE_URL
@@ -44,10 +44,10 @@ const IndigoFooter = () => {
   const companyLinks = config.INDIGO_FOOTER_COMPANY_LINKS || DEFAULT_COMPANY_LINKS;
   const supportLinks = config.INDIGO_FOOTER_SUPPORT_LINKS || DEFAULT_SUPPORT_LINKS;
   const contact = config.INDIGO_FOOTER_CONTACT || {};
-  const contactEmail = contact.email || 'Legal@TitanEd.com';
-  const contactWebUrl = contact.web_url || 'https://titaned.com/';
-  const contactWebLabel = contact.web_label || 'titaned.com';
-  const addressLines = contact.address_lines || ['TitanEd, Gurugram,', 'Haryana, India'];
+  const contactEmail = contact.email || intl.formatMessage(messages.contactEmailFallback);
+  const contactWebUrl = contact.web_url || intl.formatMessage(messages.contactWebUrlFallback);
+  const contactWebLabel = contact.web_label || intl.formatMessage(messages.contactWebLabelFallback);
+  const addressLines = contact.address_lines || intl.formatMessage(messages.contactAddressFallback).split('\n').filter(Boolean);
   // Home/Courses/About/Contact/Privacy/Terms → public MFE (see publicUrls.ts).
   const resolveUrl = (url) => resolvePublicMfeUrl(url, config);
   const linkTitle = (link) => {

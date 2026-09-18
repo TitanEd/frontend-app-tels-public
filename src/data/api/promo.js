@@ -4,38 +4,22 @@ import { getHttpClient, logApiFailure } from './http';
 import { mapPromo } from './mappers';
 import { getHomePromoUrl } from './urls';
 
-export const DEFAULT_HOME_PROMO = {
-  id: 'home-promo-fallback',
-  eyebrow: '',
-  title: '',
-  body: '',
-  ctaLabel: '',
-  ctaUrl: '/courses',
-  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-  posterUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1600&q=75',
-  youtubeId: null,
-  autoplay: false,
-  muted: false,
-};
-
 /**
- * Home promo. Never throws — falls back to DEFAULT_HOME_PROMO media.
+ * Home promo video. Real API data only — no fake sample video/poster.
+ * Returns null when the API has nothing real (no endpoint yet, request
+ * failed, or the response has neither a video nor a YouTube id) so the
+ * caller can hide the whole promo section instead of showing a placeholder.
  */
 export async function fetchHomePromo() {
   try {
     const { data } = await getHttpClient().get(getHomePromoUrl());
-    const mapped = mapPromo(camelCaseObject(data), DEFAULT_HOME_PROMO);
+    const mapped = mapPromo(camelCaseObject(data));
     if (!mapped.videoUrl && !mapped.youtubeId) {
-      return {
-        ...mapped,
-        videoUrl: DEFAULT_HOME_PROMO.videoUrl,
-        posterUrl: mapped.posterUrl || DEFAULT_HOME_PROMO.posterUrl,
-        fromFallback: true,
-      };
+      return null;
     }
-    return { ...mapped, fromFallback: false };
+    return mapped;
   } catch (error) {
-    logApiFailure('fetchHomePromo → mock promo', error);
-    return { ...DEFAULT_HOME_PROMO, fromFallback: true };
+    logApiFailure('fetchHomePromo failed', error);
+    return null;
   }
 }

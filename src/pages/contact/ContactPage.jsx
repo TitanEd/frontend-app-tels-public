@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -20,25 +21,93 @@ import {
 import {
   faLinkedinIn, faFacebookF, faTwitter, faYoutube, faInstagram,
 } from '@fortawesome/free-brands-svg-icons';
-import { submitContact } from '../../data/api';
+import { fetchFooterConfig, resolveContactReachInfo, submitContact } from '../../data/api';
+import { displayApiError } from '../../lib/displayApiError';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './messages';
 import './ContactPage.scss';
+
+// The Subject dropdown is removed from the UI (product decision), but the
+// backend (contat_us.ContactUsRequestSerializer) still requires a non-blank
+// `subject` on every submission — send this fixed default so the field
+// stays valid without asking the user to choose one.
+const DEFAULT_CONTACT_SUBJECT = 'General inquiry';
+
+const SOCIAL_ICONS = {
+  linkedin: faLinkedinIn,
+  facebook: faFacebookF,
+  twitter: faTwitter,
+  youtube: faYoutube,
+  instagram: faInstagram,
+};
+
+const SOCIAL_LABELS = {
+  linkedin: messages.socialLinkedIn,
+  facebook: messages.socialFacebook,
+  twitter: messages.socialX,
+  youtube: messages.socialYouTube,
+  instagram: messages.socialInstagram,
+};
 
 const ContactPage = () => {
   const intl = useIntl();
   useDocumentTitle(intl.formatMessage(messages.pageTitle));
   const [sent, setSent] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [openFaq, setOpenFaq] = useState(0);
+
+  const { data: footerConfig } = useQuery({
+    queryKey: ['footerConfig'],
+    queryFn: fetchFooterConfig,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const reachRaw = useMemo(
+    () => resolveContactReachInfo(footerConfig),
+    [footerConfig],
+  );
+
+  // API fail → i18n local defaults. API ok + empty → hide those rows.
+  const reach = useMemo(() => {
+    if (reachRaw.fromApi) {
+      return reachRaw;
+    }
+    return {
+      ...reachRaw,
+      contactEmail: intl.formatMessage(messages.fallbackEmail),
+      addressLines: intl.formatMessage(messages.fallbackAddress).split('\n').filter(Boolean),
+      socialLinks: [{ name: 'linkedin', url: 'https://www.linkedin.com/company/titaned' }],
+    };
+  }, [reachRaw, intl]);
+
+  const social = useMemo(
+    () => (reach.socialLinks || [])
+      .map((item) => {
+        const icon = SOCIAL_ICONS[item.name];
+        const label = SOCIAL_LABELS[item.name];
+        if (!icon || !item.url || !label) {
+          return null;
+        }
+        return {
+          icon,
+          href: item.url,
+          label,
+          name: item.name,
+        };
+      })
+      .filter(Boolean),
+    [reach.socialLinks],
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
     setFieldErrors({});
     setSent(false);
+    setSuccessMessage(null);
     const form = e.target;
     const formData = new FormData(form);
     setSubmitting(true);
@@ -47,24 +116,34 @@ const ContactPage = () => {
         name: formData.get('name'),
         email: formData.get('email'),
         org: formData.get('org'),
-        subject: formData.get('subject'),
+        subject: DEFAULT_CONTACT_SUBJECT,
         message: formData.get('message'),
         consent: formData.get('consent') === 'on',
         sourcePage: typeof window !== 'undefined' ? window.location.pathname : '/public/contact',
       });
       if (!result?.ok) {
-        setFormError(result?.message || intl.formatMessage(messages.formError));
+        setFormError(displayApiError(
+          { fromApi: !!result?.message, message: result?.message },
+          intl,
+          messages.formError,
+        ));
         return;
       }
+      // Prefer API success message; local message id when response has none.
+      setSuccessMessage(
+        (typeof result.message === 'string' && result.message.trim())
+          || intl.formatMessage(messages.formSuccess),
+      );
       setSent(true);
       form.reset();
-    } catch (error) {
+    } catch (submitErr) {
       setSent(false);
-      if (error?.code === 'VALIDATION_ERROR') {
-        setFieldErrors(error.fields || {});
-        setFormError(error.message || intl.formatMessage(messages.formError));
+      setSuccessMessage(null);
+      if (submitErr?.code === 'VALIDATION_ERROR') {
+        setFieldErrors(submitErr.fields || {});
+        setFormError(displayApiError(submitErr, intl, messages.formValidationError));
       } else {
-        setFormError(error?.message || intl.formatMessage(messages.formError));
+        setFormError(displayApiError(submitErr, intl, messages.formError));
       }
     } finally {
       setSubmitting(false);
@@ -114,13 +193,6 @@ const ContactPage = () => {
     { q: messages.faq4q, a: messages.faq4a },
     { q: messages.faq5q, a: messages.faq5a },
   ];
-  const social = [
-    { icon: faLinkedinIn, href: 'https://www.linkedin.com/company/titaned', label: messages.socialLinkedIn },
-    { icon: faFacebookF, href: null, label: messages.socialFacebook },
-    { icon: faTwitter, href: null, label: messages.socialX },
-    { icon: faYoutube, href: null, label: messages.socialYouTube },
-    { icon: faInstagram, href: null, label: messages.socialInstagram },
-  ];
 
   const firstFieldError = (name) => {
     const msgs = fieldErrors?.[name];
@@ -160,27 +232,35 @@ const ContactPage = () => {
               <p className="tels-muted">{intl.formatMessage(messages.reachBody)}</p>
 
               <ul className="tels-contact-list">
+                {reach.contactEmail && (
                 <li>
                   <span className="tels-outcome__icon"><FontAwesomeIcon icon={faEnvelope} /></span>
                   <div>
                     <strong>{intl.formatMessage(messages.labelEmail)}</strong>
-                    <a href="mailto:Legal@TitanEd.com">Legal@TitanEd.com</a>
+                    <a href={`mailto:${reach.contactEmail}`}>{reach.contactEmail}</a>
                   </div>
                 </li>
+                )}
                 <li>
                   <span className="tels-outcome__icon"><FontAwesomeIcon icon={faGlobe} /></span>
                   <div>
                     <strong>{intl.formatMessage(messages.labelWebsite)}</strong>
-                    <a href="https://titaned.com/" target="_blank" rel="noreferrer">titaned.com</a>
+                    <a href={intl.formatMessage(messages.websiteUrl)} target="_blank" rel="noreferrer">
+                      {intl.formatMessage(messages.websiteLabel)}
+                    </a>
                   </div>
                 </li>
+                {reach.addressLines.length > 0 && (
                 <li>
                   <span className="tels-outcome__icon"><FontAwesomeIcon icon={faMapMarkerAlt} /></span>
                   <div>
                     <strong>{intl.formatMessage(messages.labelGlobalHq)}</strong>
-                    <span>{intl.formatMessage(messages.hqAddress)}</span>
+                    <span className="tels-contact__address">
+                      {reach.addressLines.join('\n')}
+                    </span>
                   </div>
                 </li>
+                )}
                 <li>
                   <span className="tels-outcome__icon"><FontAwesomeIcon icon={faClock} /></span>
                   <div>
@@ -190,24 +270,27 @@ const ContactPage = () => {
                 </li>
               </ul>
 
+              {social.length > 0 && (
               <div className="tels-contact__social">
                 <h4 className="tels-contact__social-heading">
                   {intl.formatMessage(messages.followTitanEd)}
                 </h4>
                 <div className="tels-contact__social-row">
                   {social.map((s) => (
-                    s.href ? (
-                      <a key={s.label.id} href={s.href} target="_blank" rel="noreferrer" aria-label={intl.formatMessage(s.label)} className="tels-contact__social-link">
-                        <FontAwesomeIcon icon={s.icon} />
-                      </a>
-                    ) : (
-                      <span key={s.label.id} aria-label={intl.formatMessage(s.label)} className="tels-contact__social-link tels-contact__social-link--static" title={intl.formatMessage(s.label)}>
-                        <FontAwesomeIcon icon={s.icon} />
-                      </span>
-                    )
+                    <a
+                      key={s.name}
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={intl.formatMessage(s.label)}
+                      className="tels-contact__social-link"
+                    >
+                      <FontAwesomeIcon icon={s.icon} />
+                    </a>
                   ))}
                 </div>
               </div>
+              )}
             </div>
 
             <form
@@ -218,9 +301,9 @@ const ContactPage = () => {
               <div className="tels-eyebrow">{intl.formatMessage(messages.formEyebrow)}</div>
               <h3 className="tels-h3 tels-contact__form-title">{intl.formatMessage(messages.formTitle)}</h3>
               {sent && !formError && (
-              <div className="tels-alert">
+              <div className="tels-alert" role="status">
                 <FontAwesomeIcon icon={faCheckCircle} />
-                  &nbsp;{intl.formatMessage(messages.formSuccess)}
+                  &nbsp;{successMessage || intl.formatMessage(messages.formSuccess)}
               </div>
               )}
               {formError && (
@@ -228,7 +311,7 @@ const ContactPage = () => {
                 {formError}
               </div>
               )}
-              <div className="row">
+              <div className="tels-form__row">
                 <div className="field">
                   <label htmlFor="contact-name">{intl.formatMessage(messages.fieldName)}</label>
                   <input required id="contact-name" name="name" placeholder={intl.formatMessage(messages.fieldNamePlaceholder)} />
@@ -240,23 +323,9 @@ const ContactPage = () => {
                   {firstFieldError('email') && <span className="tels-field-error">{firstFieldError('email')}</span>}
                 </div>
               </div>
-              <div className="row">
-                <div className="field">
-                  <label htmlFor="contact-org">{intl.formatMessage(messages.fieldOrg)}</label>
-                  <input id="contact-org" name="org" placeholder={intl.formatMessage(messages.fieldOrgPlaceholder)} />
-                </div>
-                <div className="field">
-                  <label htmlFor="contact-subject">{intl.formatMessage(messages.fieldSubject)}</label>
-                  <select id="contact-subject" name="subject" required defaultValue="">
-                    <option value="" disabled>{intl.formatMessage(messages.subjectChoose)}</option>
-                    <option>{intl.formatMessage(messages.subjectGeneral)}</option>
-                    <option>{intl.formatMessage(messages.subjectLearner)}</option>
-                    <option>{intl.formatMessage(messages.subjectPartnership)}</option>
-                    <option>{intl.formatMessage(messages.subjectDemo)}</option>
-                    <option>{intl.formatMessage(messages.subjectMedia)}</option>
-                  </select>
-                  {firstFieldError('subject') && <span className="tels-field-error">{firstFieldError('subject')}</span>}
-                </div>
+              <div className="field">
+                <label htmlFor="contact-org">{intl.formatMessage(messages.fieldOrg)}</label>
+                <input id="contact-org" name="org" placeholder={intl.formatMessage(messages.fieldOrgPlaceholder)} />
               </div>
               <div className="field">
                 <label htmlFor="contact-message">{intl.formatMessage(messages.fieldMessage)}</label>

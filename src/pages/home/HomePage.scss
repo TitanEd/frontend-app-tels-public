@@ -5,6 +5,20 @@
 
 .tels-home__features {
   margin-top: 1.5rem;
+
+  a.tels-evergreen__feature {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      h4 {
+        text-decoration: underline;
+      }
+    }
+  }
 }
 
 .tels-home__explore-btn {

@@ -1,22 +1,16 @@
 import { camelCaseObject } from '@edx/frontend-platform';
-import { getLocale } from '@edx/frontend-platform/i18n';
 
 import { getHttpClient, getHttpStatus, logApiFailure } from './http';
 import { getContactUrl } from './urls';
 
 /**
- * Submit contact form to TitanEd API.
- * Validation (400) and all other failures (404/503/5xx/network) throw —
- * UI must show an error, never a success message.
+ * Submit contact form to Template A control-panel
+ * `POST /api/v1/contact-us/`.
+ * Validation (400) and all other failures throw — never fake success.
+ * Local English is not embedded for UI; callers use intl message ids when
+ * `fromApi` is false / message is empty.
  */
 export async function submitContact(payload) {
-  let locale = 'en';
-  try {
-    locale = getLocale() || 'en';
-  } catch {
-    locale = 'en';
-  }
-
   const body = {
     name: payload.name || '',
     email: payload.email || '',
@@ -24,8 +18,6 @@ export async function submitContact(payload) {
     subject: payload.subject || '',
     message: payload.message || '',
     consent: !!payload.consent,
-    source_page: payload.sourcePage || '/public/contact',
-    locale: payload.locale || locale,
   };
 
   try {
@@ -33,14 +25,31 @@ export async function submitContact(payload) {
       headers: { 'Content-Type': 'application/json' },
     });
     const result = camelCaseObject(data) || {};
+    // Treat explicit ok:false in body as failure even if HTTP status is 2xx.
+    if (result.ok === false) {
+      const failMessage = (typeof result.message === 'string' && result.message.trim())
+        || result?.error?.message
+        || '';
+      const failError = new Error(failMessage);
+      failError.code = 'CONTACT_FAILED';
+      failError.fromApi = !!failMessage;
+      failError.status = status || result.status;
+      failError.fields = result?.error?.fields || {};
+      throw failError;
+    }
     return {
       ok: true,
-      status: status || 201,
+      status: status || result.status || 201,
       id: result.id,
-      message: result.message,
-      data: result.data,
+      createdAt: result.createdAt,
+      // Exact API success copy when present — UI falls back to message id.
+      message: (typeof result.message === 'string' && result.message.trim()) || '',
+      data: result.data || null,
     };
   } catch (error) {
+    if (error?.code === 'CONTACT_FAILED') {
+      throw error;
+    }
     const status = getHttpStatus(error);
     const responseData = camelCaseObject(error?.response?.data) || {};
     const apiMessage = responseData?.error?.message
@@ -50,18 +59,16 @@ export async function submitContact(payload) {
     logApiFailure('submitContact failed', error);
 
     if (status === 400) {
-      const validationError = new Error(
-        apiMessage || 'Please fix the highlighted fields.',
-      );
+      const validationError = new Error(apiMessage || '');
       validationError.code = 'VALIDATION_ERROR';
+      validationError.fromApi = !!apiMessage;
       validationError.status = 400;
       validationError.fields = responseData?.error?.fields || {};
       throw validationError;
     }
 
-    const submitError = new Error(
-      apiMessage || 'Unable to submit — try again later.',
-    );
+    const submitError = new Error(apiMessage || '');
+    submitError.fromApi = !!apiMessage;
     if (status === 404) {
       submitError.code = 'CONTACT_NOT_FOUND';
     } else if (status === 503) {

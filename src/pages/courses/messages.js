@@ -71,10 +71,10 @@ const messages = defineMessages({
     defaultMessage: 'Organization',
     description: 'Organization filter label',
   },
-  filterType: {
-    id: 'public.courses.filters.type',
-    defaultMessage: 'Learning type',
-    description: 'Learning type filter label',
+  filterModes: {
+    id: 'public.courses.filters.modes',
+    defaultMessage: 'Enrollment mode',
+    description: 'Enrollment mode filter label (audit, verified, etc.)',
   },
   filterLanguage: {
     id: 'public.courses.filters.language',
@@ -140,6 +140,21 @@ const messages = defineMessages({
     id: 'public.courses.empty.clear-filters',
     defaultMessage: 'Clear filters',
     description: 'Empty state clear filters CTA',
+  },
+  errorTitle: {
+    id: 'public.courses.error.title',
+    defaultMessage: "Couldn't load courses",
+    description: 'Error state title shown when the catalog request itself fails',
+  },
+  errorFallbackBody: {
+    id: 'public.courses.error.fallback-body',
+    defaultMessage: 'Something went wrong on our end — please try again in a moment.',
+    description: 'Local fallback error body, used only when the API response has no message of its own',
+  },
+  retry: {
+    id: 'public.courses.error.retry',
+    defaultMessage: 'Try again',
+    description: 'Error state retry CTA',
   },
   paginationAria: {
     id: 'public.courses.pagination.aria',

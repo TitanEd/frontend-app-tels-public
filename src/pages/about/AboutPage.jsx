@@ -5,52 +5,30 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChevronDown, faChevronUp, faBookOpen, faCertificate, faCheckCircle, faGraduationCap, faChartLine,
 } from '@fortawesome/free-solid-svg-icons';
-import { PARTNER_LOGOS } from '../../data/telsData';
 import useDocumentTitle from '../../lib/useDocumentTitle';
+import { CATALOG_LINKS } from '../../lib/catalogLinks';
+// Bundled locally — no external image links (same asset as HomePage's
+// solutions images; see the comment there re: the inline file-loader for
+// .webp — the shared webpack image rule doesn't match it, and the
+// project's own webpack.*-tutor.config.js overrides are gitignored/
+// generated, not real editable config, so this is the durable fix).
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+import missionImg from '!!file-loader!../../assets/home/collaborative-learning.webp';
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+import storyImg from '!!file-loader!../../assets/home/classroom-education.webp';
 import messages from './messages';
 import './AboutPage.scss';
 
-const MISSION_IMG = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=70';
-const STORY_IMG = 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1000&q=70';
+const MISSION_IMG = missionImg;
+const STORY_IMG = storyImg;
 const AboutPage = () => {
   const intl = useIntl();
   useDocumentTitle(intl.formatMessage(messages.pageTitle));
   const [openFaq, setOpenFaq] = useState(0);
-  const instructors = [
-    {
-      name: 'Dr. Anita Rao', title: messages.instructor1Title, bio: messages.instructor1Bio, image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=70',
-    },
-    {
-      name: 'Marcus Bennett', title: messages.instructor2Title, bio: messages.instructor2Bio, image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=70',
-    },
-    {
-      name: 'Priya Sharma', title: messages.instructor3Title, bio: messages.instructor3Bio, image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=70',
-    },
-    {
-      name: "James O'Connor", title: messages.instructor4Title, bio: messages.instructor4Bio, image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=70',
-    },
-    {
-      name: 'Sofia Alvarez', title: messages.instructor5Title, bio: messages.instructor5Bio, image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=70',
-    },
-    {
-      name: 'David Chen', title: messages.instructor6Title, bio: messages.instructor6Bio, image: 'https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=crop&w=400&q=70',
-    },
-    {
-      name: 'Dr. Fatima Hassan', title: messages.instructor7Title, bio: messages.instructor7Bio, image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=400&q=70',
-    },
-    {
-      name: 'Liam Nguyen', title: messages.instructor8Title, bio: messages.instructor8Bio, image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=70',
-    },
-  ];
   const outcomes = [
     { icon: faCheckCircle, title: messages.outcome1Title, body: messages.outcome1Body },
     { icon: faGraduationCap, title: messages.outcome2Title, body: messages.outcome2Body },
     { icon: faChartLine, title: messages.outcome3Title, body: messages.outcome3Body },
-  ];
-  const testimonials = [
-    { quote: messages.testimonial1Quote, who: messages.testimonial1Who },
-    { quote: messages.testimonial2Quote, who: messages.testimonial2Who },
-    { quote: messages.testimonial3Quote, who: messages.testimonial3Who },
   ];
   const formats = [
     {
@@ -59,6 +37,7 @@ const AboutPage = () => {
       body: messages.format1Body,
       items: [messages.format1Item1, messages.format1Item2, messages.format1Item3],
       cta: messages.format1Cta,
+      to: CATALOG_LINKS.individualCourses,
       featured: false,
     },
     {
@@ -67,6 +46,7 @@ const AboutPage = () => {
       body: messages.format2Body,
       items: [messages.format2Item1, messages.format2Item2, messages.format2Item3],
       cta: messages.format2Cta,
+      to: CATALOG_LINKS.certificatePrograms,
       featured: true,
     },
     {
@@ -75,6 +55,7 @@ const AboutPage = () => {
       body: messages.format3Body,
       items: [messages.format3Item1, messages.format3Item2, messages.format3Item3],
       cta: messages.format3Cta,
+      to: CATALOG_LINKS.executiveLearning,
       featured: false,
     },
     {
@@ -83,6 +64,7 @@ const AboutPage = () => {
       body: messages.format4Body,
       items: [messages.format4Item1, messages.format4Item2, messages.format4Item3],
       cta: messages.format4Cta,
+      to: CATALOG_LINKS.learningPathways,
       featured: false,
     },
   ];
@@ -151,16 +133,6 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className="tels-section">
-        <div className="tels-container">
-          <h2 className="tels-h2 tels-about__text-center">{intl.formatMessage(messages.partnersTitle)}</h2>
-          <p className="tels-lead tels-about__lead-partners">{intl.formatMessage(messages.partnersLead)}</p>
-          <div className="tels-partners">
-            {PARTNER_LOGOS.map((p) => <img key={p} src={p} alt={intl.formatMessage(messages.partnerAlt)} />)}
-          </div>
-        </div>
-      </section>
-
       <section className="tels-section tels-section--subtle">
         <div className="tels-container">
           <h2 className="tels-h2 tels-about__text-center">{intl.formatMessage(messages.outcomesTitle)}</h2>
@@ -171,60 +143,6 @@ const AboutPage = () => {
                 <span className="tels-outcome__icon"><FontAwesomeIcon icon={v.icon} /></span>
                 <h3>{intl.formatMessage(v.title)}</h3>
                 <p>{intl.formatMessage(v.body)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="tels-section tels-section--warm">
-        <div className="tels-container">
-          <div className="tels-eyebrow tels-about__text-center">{intl.formatMessage(messages.facultyEyebrow)}</div>
-          <h2 className="tels-h2 tels-about__text-center">{intl.formatMessage(messages.facultyTitle)}</h2>
-          <p className="tels-lead tels-about__lead-faculty">{intl.formatMessage(messages.facultyLead)}</p>
-          <div className="tels-instructors">
-            {instructors.map((p) => (
-              <div key={p.name} className="tels-instructor">
-                <div className="tels-instructor__img">
-                  <img src={p.image} alt={p.name} />
-                </div>
-                <h3>{p.name}</h3>
-                <p className="tels-instructor__title">{intl.formatMessage(p.title)}</p>
-                <p className="tels-instructor__bio">{intl.formatMessage(p.bio)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="tels-section">
-        <div className="tels-container">
-          <h2 className="tels-h2 tels-about__text-center">{intl.formatMessage(messages.statsTitle)}</h2>
-          <div className="tels-stats tels-about__stats">
-            <div><div className="n">20K+</div><div className="l">{intl.formatMessage(messages.stat1Label)}</div></div>
-            <div><div className="n">2M+</div><div className="l">{intl.formatMessage(messages.stat2Label)}</div></div>
-            <div><div className="n">120+</div><div className="l">{intl.formatMessage(messages.stat3Label)}</div></div>
-            <div><div className="n">40+</div><div className="l">{intl.formatMessage(messages.stat4Label)}</div></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="tels-section tels-section--subtle">
-        <div className="tels-container">
-          <h2 className="tels-h2 tels-about__text-center">{intl.formatMessage(messages.testimonialsTitle)}</h2>
-          <div className="tels-grid tels-grid--3 tels-about__testimonials">
-            {testimonials.map((t) => (
-              <div key={t.who.id} className="tels-benefit">
-                <p className="tels-about__quote">
-                  &ldquo;
-                  {intl.formatMessage(t.quote)}
-                  &rdquo;
-                </p>
-                <p className="tels-muted tels-about__quote-who">
-                  —
-                  {' '}
-                  {intl.formatMessage(t.who)}
-                </p>
               </div>
             ))}
           </div>
@@ -251,7 +169,7 @@ const AboutPage = () => {
                   ))}
                 </ul>
                 <Link
-                  to="/courses"
+                  to={f.to}
                   className={`tels-btn ${f.featured ? 'tels-btn--primary' : 'tels-btn--outline'} tels-btn--sm`}
                 >
                   {intl.formatMessage(f.cta)}
