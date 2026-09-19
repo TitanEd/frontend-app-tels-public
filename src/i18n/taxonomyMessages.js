@@ -161,6 +161,16 @@ const taxonomyMessages = defineMessages({
     defaultMessage: '12+ weeks',
     description: 'Duration filter bucket',
   },
+  selfPaced: {
+    id: 'tels.taxonomy.pace.selfPaced',
+    defaultMessage: 'Self-paced',
+    description: 'Course pace',
+  },
+  instructorPaced: {
+    id: 'tels.taxonomy.pace.instructorPaced',
+    defaultMessage: 'Instructor-paced',
+    description: 'Course pace',
+  },
 });
 
 export const SUBJECT_MESSAGE_KEY = {
@@ -205,6 +215,11 @@ export const AVAILABILITY_MESSAGE_KEY = {
   'Starts soon': 'startsSoon',
 };
 
+export const PACE_MESSAGE_KEY = {
+  'Self-paced': 'selfPaced',
+  'Instructor-paced': 'instructorPaced',
+};
+
 const formatKeyed = (intl, map, value) => {
   const key = map[value];
   if (!key || !taxonomyMessages[key]) {
@@ -218,5 +233,6 @@ export const formatModality = (intl, modality) => formatKeyed(intl, MODALITY_MES
 export const formatDifficulty = (intl, difficulty) => formatKeyed(intl, DIFFICULTY_MESSAGE_KEY, difficulty);
 export const formatDurationBucket = (intl, label) => formatKeyed(intl, DURATION_MESSAGE_KEY, label);
 export const formatAvailability = (intl, value) => formatKeyed(intl, AVAILABILITY_MESSAGE_KEY, value);
+export const formatPace = (intl, pace) => formatKeyed(intl, PACE_MESSAGE_KEY, pace);
 
 export default taxonomyMessages;

@@ -86,6 +86,11 @@ const messages = defineMessages({
     defaultMessage: 'Remove {label} filter',
     description: 'Aria label for chip remove button',
   },
+  schoolLogoAlt: {
+    id: 'tels.courses.schoolLogoAlt',
+    defaultMessage: '{name} logo',
+    description: 'School landing page logo alt text',
+  },
 });
 
 export default messages;

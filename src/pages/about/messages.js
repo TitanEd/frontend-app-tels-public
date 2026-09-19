@@ -61,6 +61,11 @@ const messages = defineMessages({
     defaultMessage: 'Contact us',
     description: 'About CTA',
   },
+  orgLogoAlt: {
+    id: 'tels.about.orgLogoAlt',
+    defaultMessage: '{name} logo',
+    description: 'About page organization logo alt text',
+  },
 });
 
 export default messages;

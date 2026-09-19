@@ -16,6 +16,11 @@ const messages = defineMessages({
     defaultMessage: 'In-person, blended, and online courses',
     description: 'Home hero subtitle',
   },
+  heroImageAlt: {
+    id: 'tels.home.hero.imageAlt',
+    defaultMessage: 'Learners on a university campus',
+    description: 'Home hero background image alt text',
+  },
   allCourses: {
     id: 'tels.home.cta.allCourses',
     defaultMessage: 'All Courses',

@@ -16,15 +16,16 @@ const SchoolPage = () => {
 
   return (
     <>
-      <div
-        className="tels-page-header"
-        style={{
-          display: 'flex', alignItems: 'center', gap: '1.5rem', paddingBottom: '2.5rem', paddingTop: '2.5rem',
-        }}
-      >
-        <div className="tels-container" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          {school.logo && <img src={school.logo} alt="" style={{ height: '4rem', objectFit: 'contain' }} />}
-          <h1 style={{ margin: 0 }}>{school.name}</h1>
+      <div className="tels-page-header tels-school-header">
+        <div className="tels-container tels-school-header__inner">
+          {school.logo && (
+            <img
+              src={school.logo}
+              alt={intl.formatMessage(coursesMessages.schoolLogoAlt, { name: school.name })}
+              className="tels-school-header__logo"
+            />
+          )}
+          <h1 className="tels-school-header__title">{school.name}</h1>
         </div>
       </div>
       <CoursesPage

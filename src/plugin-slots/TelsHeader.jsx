@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Menu,
-  X,
+  Search,
   Palette,
   Briefcase,
   Code,
@@ -19,9 +18,11 @@ import {
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import ChromeLink from './ChromeLink';
+import LanguageMenu from './LanguageMenu';
 import { publicCoursesHref, publicHomeHref, resolvePublicMfeUrl } from './publicUrls';
 import messages from './messages';
 import { formatSubject } from '../i18n/taxonomyMessages';
+import localLogo from '!!file-loader!../assets/brand/logo.webp';
 import './TelsHeader.scss';
 
 const SUBJECTS = [
@@ -56,30 +57,37 @@ const SUBJECT_ICONS = {
 
 /**
  * Same widget as tutor-tels-theme-plugins TelsHeader (tels_header slot).
- * Template B (Harvard-PLL / tels-mirror): sticky header is the same chrome
- * on every page — solid dark navy, except transparent over the home hero
- * until the user scrolls. Hamburger opens a "Browse by Subject Area"
- * mega-menu; "View all courses" pill (hidden on home); centered logo.
- * No search bar/logic (product decision).
+ * Template B (Harvard-PLL): sticky header — solid dark navy except transparent
+ * over the home hero until scroll. Hamburger (3-span, PLL-style) opens
+ * "Browse by Subject Area"; centered logo; right-side catalog search →
+ * /courses?keywords=… (same param CoursesPage already reads).
  */
 const TelsHeader = () => {
   const intl = useIntl();
   const config = getConfig();
   const location = useLocation();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(() => {
+    try {
+      return new URLSearchParams(location.search).get('keywords') || '';
+    } catch {
+      return '';
+    }
+  });
 
   const siteName = config.SITE_NAME || 'TitanEd';
-  const logoUrl = config.LOGO_URL || `${config.LMS_BASE_URL}/theming/asset/images/logo.png`;
+  const logoUrl = config.LOGO_URL || localLogo;
   const homeUrl = publicHomeHref(config);
   const coursesUrl = resolvePublicMfeUrl('/courses', config);
 
   const isPublicMfe = process.env.APP_ID === 'public';
   const pathname = location?.pathname || '';
   const isHome = isPublicMfe && (pathname === '/' || pathname === '');
-  const hasActiveCourseFilters = isPublicMfe
-    && pathname.startsWith('/courses')
-    && !!(location?.search && location.search.length > 1);
+  // PLL shows “View All Courses” in the header on every non-home page
+  // (course detail, catalog, legal, …).
+  const showViewAllCourses = isPublicMfe && !isHome;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -95,12 +103,33 @@ const TelsHeader = () => {
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
+  useEffect(() => {
+    const next = new URLSearchParams(location.search).get('keywords') || '';
+    setSearchQuery(next);
+  }, [location.search]);
+
   // Same chrome on every route: dark navy. Home is the only exception —
   // transparent over the hero until scroll (or until the mega-menu opens).
   const overHomeHero = isHome && !scrolled && !menuOpen;
   const variant = overHomeHero ? 'transparent' : 'dark';
 
   const closeMenu = () => setMenuOpen(false);
+
+  const goToCourseSearch = (rawQuery) => {
+    const keywords = String(rawQuery || '').trim();
+    if (isPublicMfe) {
+      navigate(keywords
+        ? `/courses?keywords=${encodeURIComponent(keywords)}`
+        : '/courses');
+      return;
+    }
+    window.location.assign(publicCoursesHref(config, keywords ? { keywords } : {}));
+  };
+
+  const onSearchSubmit = (event) => {
+    event.preventDefault();
+    goToCourseSearch(searchQuery);
+  };
 
   return (
     <>
@@ -110,15 +139,17 @@ const TelsHeader = () => {
             <div className="tels-header__start">
               <button
                 type="button"
-                className="tels-header__menu-btn"
+                className={`tels-header__menu-btn${menuOpen ? ' is-open' : ''}`}
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-label={intl.formatMessage(menuOpen ? messages.close : messages.menu)}
                 aria-expanded={menuOpen}
                 aria-controls="tels-header-menu"
               >
-                {menuOpen ? <X /> : <Menu />}
+                <span />
+                <span />
+                <span />
               </button>
-              {hasActiveCourseFilters && (
+              {showViewAllCourses && (
                 <ChromeLink href={coursesUrl} className="tels-header__view-all">
                   {intl.formatMessage(messages.viewAllCourses)}
                 </ChromeLink>
@@ -130,8 +161,40 @@ const TelsHeader = () => {
               className="tels-header__logo"
               aria-label={intl.formatMessage(messages.homeAria, { siteName })}
             >
-              <img src={logoUrl} alt={siteName} />
+              <img src={logoUrl} alt={intl.formatMessage(messages.logoAlt, { siteName })} />
             </a>
+
+            <div className="tels-header__end">
+              <form
+                className="tels-header__search"
+                role="search"
+                onSubmit={onSearchSubmit}
+                action={coursesUrl}
+                method="get"
+              >
+                <label className="sr-only" htmlFor="tels-header-search">
+                  {intl.formatMessage(messages.searchLabel)}
+                </label>
+                <input
+                  id="tels-header-search"
+                  className="tels-header__search-input"
+                  type="text"
+                  name="keywords"
+                  placeholder={intl.formatMessage(messages.searchPlaceholder)}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoComplete="off"
+                  maxLength={128}
+                />
+                <button
+                  type="submit"
+                  className="tels-header__search-submit"
+                  aria-label={intl.formatMessage(messages.searchSubmit)}
+                >
+                  <Search size={35} strokeWidth={3.25} absoluteStrokeWidth aria-hidden="true" />
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </header>
@@ -164,6 +227,9 @@ const TelsHeader = () => {
                 );
               })}
             </ul>
+            <div className="tels-header__menu-lang">
+              <LanguageMenu />
+            </div>
           </div>
         </div>
       </div>

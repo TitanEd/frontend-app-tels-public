@@ -19,7 +19,11 @@ const withBase = (path) => (PUBLIC_BASE === '/' ? path : `${PUBLIC_BASE}${path}`
 
 export const localIndigoConfig = {
   INDIGO_ENABLE_DARK_TOGGLE: false,
-  INDIGO_ENABLE_LANGUAGE_MENU: false,
+  INDIGO_ENABLE_LANGUAGE_MENU: true,
+  INDIGO_SUPPORTED_LANGUAGES: [
+    { value: 'en', label: 'English' },
+    { value: 'ar', label: 'العربية' },
+  ],
   INDIGO_HOME_URL: PUBLIC_BASE === '/' ? '/public/' : `${PUBLIC_BASE}/`,
   INDIGO_COURSES_URL: withBase('/courses'),
   INDIGO_ABOUT_URL: withBase('/about'),

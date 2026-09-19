@@ -3,23 +3,48 @@ import { defineMessages } from '@edx/frontend-platform/i18n';
 const messages = defineMessages({
   title: {
     id: 'tels.emailSignup.title',
-    defaultMessage: 'Stay in the loop',
-    description: 'Email signup heading',
+    defaultMessage: 'Join our list to learn more',
+    description: 'Email signup heading (PLL newsletter band)',
   },
   subtitle: {
     id: 'tels.emailSignup.subtitle',
-    defaultMessage: 'Get new courses and program updates in your inbox.',
-    description: 'Email signup subtitle',
+    defaultMessage: 'Sign up to get updates on courses and events',
+    description: 'Email signup subtitle (PLL newsletter band)',
   },
   submit: {
     id: 'tels.emailSignup.submit',
-    defaultMessage: 'Subscribe',
-    description: 'Email signup submit button',
+    defaultMessage: 'SUBSCRIBE',
+    description: 'Email signup submit button (PLL uppercase)',
+  },
+  submitting: {
+    id: 'tels.emailSignup.submitting',
+    defaultMessage: 'Submitting…',
+    description: 'Email signup submit button while pending',
   },
   success: {
     id: 'tels.emailSignup.success',
     defaultMessage: 'Thanks — you’re on the list.',
     description: 'Email signup success message',
+  },
+  error: {
+    id: 'tels.emailSignup.error',
+    defaultMessage: 'We could not save your email. Please try again.',
+    description: 'Email signup generic error',
+  },
+  notFound: {
+    id: 'tels.emailSignup.notFound',
+    defaultMessage: 'Newsletter service is unavailable right now.',
+    description: 'Email signup when API returns 404',
+  },
+  emailRequired: {
+    id: 'tels.emailSignup.emailRequired',
+    defaultMessage: 'Please enter your email address.',
+    description: 'Email signup required field error',
+  },
+  emailInvalid: {
+    id: 'tels.emailSignup.emailInvalid',
+    defaultMessage: 'Please enter a valid email address.',
+    description: 'Email signup invalid format error',
   },
   emailPlaceholder: {
     id: 'tels.emailSignup.emailPlaceholder',
