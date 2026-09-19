@@ -85,9 +85,8 @@ const TelsHeader = () => {
   const isPublicMfe = process.env.APP_ID === 'public';
   const pathname = location?.pathname || '';
   const isHome = isPublicMfe && (pathname === '/' || pathname === '');
-  // PLL shows “View All Courses” in the header on every non-home page
-  // (course detail, catalog, legal, …).
-  const showViewAllCourses = isPublicMfe && !isHome;
+  // Same chrome as Tutor CustomHeader: hide “View all courses” only on public home.
+  const showViewAllCourses = !(isPublicMfe && isHome);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
