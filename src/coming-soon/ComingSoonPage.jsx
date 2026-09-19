@@ -6,10 +6,10 @@ import './ComingSoonPage.scss';
 const ComingSoonPage = () => {
   const intl = useIntl();
   return (
-    <main id="main">
-      <div className="tels-container py-5 text-center">
-        <h1 className="mb-3">{intl.formatMessage(messages.title)}</h1>
-        <p className="lead mb-0">
+    <main id="coming-soon-main" className="tels-coming-soon">
+      <div className="tels-container tels-coming-soon__inner">
+        <h1 className="tels-coming-soon__title">{intl.formatMessage(messages.title)}</h1>
+        <p className="tels-coming-soon__body">
           {intl.formatMessage(messages.body)}
         </p>
       </div>

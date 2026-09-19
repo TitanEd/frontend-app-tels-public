@@ -26,6 +26,26 @@ const messages = defineMessages({
     defaultMessage: 'Close menu',
     description: 'Hamburger menu close aria label',
   },
+  searchLabel: {
+    id: 'tels.header.search.label',
+    defaultMessage: 'Search',
+    description: 'Visually hidden label for header catalog search',
+  },
+  searchPlaceholder: {
+    id: 'tels.header.search.placeholder',
+    defaultMessage: 'Search',
+    description: 'Placeholder for header catalog search input',
+  },
+  searchSubmit: {
+    id: 'tels.header.search.submit',
+    defaultMessage: 'Apply search',
+    description: 'Aria label for header search submit / icon button',
+  },
+  logoAlt: {
+    id: 'tels.header.logo.alt',
+    defaultMessage: '{siteName}',
+    description: 'Header logo image alt text',
+  },
 });
 
 export default messages;

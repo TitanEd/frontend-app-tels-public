@@ -6,6 +6,16 @@ const messages = defineMessages({
     defaultMessage: '{duration} long',
     description: 'Course card duration meta',
   },
+  courseImageAlt: {
+    id: 'tels.card.imageAlt',
+    defaultMessage: '{title}',
+    description: 'Course card image alt text',
+  },
+  courseLinkAria: {
+    id: 'tels.card.linkAria',
+    defaultMessage: '{title}',
+    description: 'Course card image link aria-label',
+  },
 });
 
 export default messages;

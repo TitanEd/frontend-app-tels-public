@@ -3,6 +3,7 @@ import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { Icon } from '@openedx/paragon';
 import { Nightlight, WbSunny } from '@openedx/paragon/icons';
+import messages from './theme-toggle-messages';
 import './ToggleThemeButton.scss';
 
 const themeCookie = 'selected-paragon-theme-variant';
@@ -45,18 +46,21 @@ const ToggleThemeButton = () => {
   if (!isThemeToggleEnabled) {
     return null;
   }
-  const label = intl.formatMessage({
-    id: 'header.user.theme',
-    defaultMessage: 'Toggle theme',
-    description: 'Toggle between light and dark theme',
-  });
+  const label = intl.formatMessage(messages.toggleTheme);
   return (
     <div className="indigo-theme-toggle" title={label}>
       <span className="indigo-theme-toggle__icon" aria-hidden="true">
         <Icon src={WbSunny} />
       </span>
       <label className="indigo-theme-toggle__switch" htmlFor="indigo-theme-toggle-input">
-        <input id="indigo-theme-toggle-input" type="checkbox" role="switch" checked={isDarkThemeEnabled} onChange={onToggleTheme} aria-label={label} />
+        <input
+          id="indigo-theme-toggle-input"
+          type="checkbox"
+          role="switch"
+          checked={isDarkThemeEnabled}
+          onChange={onToggleTheme}
+          aria-label={label}
+        />
         <span className="indigo-theme-toggle__slider" />
       </label>
       <span className="indigo-theme-toggle__icon" aria-hidden="true">

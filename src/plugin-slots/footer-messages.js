@@ -36,6 +36,16 @@ const messages = defineMessages({
     defaultMessage: 'Contact',
     description: 'Footer Contact link',
   },
+  homeAria: {
+    id: 'indigo.footer.logo.aria',
+    defaultMessage: '{siteName} Home',
+    description: 'Footer logo link aria-label',
+  },
+  logoAlt: {
+    id: 'indigo.footer.logo.alt',
+    defaultMessage: '{siteName}',
+    description: 'Footer logo image alt text',
+  },
 });
 
 export default messages;

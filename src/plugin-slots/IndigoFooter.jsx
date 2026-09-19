@@ -2,6 +2,7 @@ import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { publicHomeHref, resolveFooterHref, resolvePublicMfeUrl } from './publicUrls';
 import messages from './footer-messages';
+import localLogo from '!!file-loader!../assets/brand/logo.webp';
 import './IndigoFooter.scss';
 
 const DEFAULT_LINKS = [
@@ -39,7 +40,7 @@ const IndigoFooter = () => {
   const config = getConfig();
   const siteName = config.SITE_NAME || 'TitanEd';
 
-  const logoUrl = config.LOGO_URL || config.LOGO_WHITE_URL || `${config.LMS_BASE_URL}/theming/asset/images/logo.png`;
+  const logoUrl = config.LOGO_URL || config.LOGO_WHITE_URL || localLogo;
 
   const links = (config.INDIGO_FOOTER_EXPLORE_LINKS || DEFAULT_LINKS)
     .filter((link) => !isHiddenFooterLink(link));
@@ -76,8 +77,8 @@ const IndigoFooter = () => {
 
         <div className="tels-footer__brand">
           <div className="tels-footer__logo">
-            <a href={homeUrl} aria-label={siteName}>
-              <img src={logoUrl} alt={siteName} />
+            <a href={homeUrl} aria-label={intl.formatMessage(messages.homeAria, { siteName })}>
+              <img src={logoUrl} alt={intl.formatMessage(messages.logoAlt, { siteName })} />
             </a>
           </div>
         </div>

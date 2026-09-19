@@ -23,19 +23,7 @@ const AboutPage = () => {
         </div>
       </div>
 
-      <div
-        className="tels-container"
-        style={{
-          paddingTop: '2.5rem',
-          paddingBottom: '2.5rem',
-          maxWidth: '48rem',
-          color: 'var(--pgn-color-text-secondary)',
-          lineHeight: 1.7,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.25rem',
-        }}
-      >
+      <div className="tels-container tels-page-body tels-about-prose">
         <p>{intl.formatMessage(messages.p1)}</p>
         <p>{intl.formatMessage(messages.p2)}</p>
         <p>{intl.formatMessage(messages.p3)}</p>
@@ -54,7 +42,7 @@ const AboutPage = () => {
 
       <section className="tels-section">
         <div className="tels-container">
-          <h2 className="tels-section-header__title" style={{ marginBottom: '1.5rem' }}>
+          <h2 className="tels-section-header__title tels-about-orgs-title">
             {intl.formatMessage(messages.organizations)}
           </h2>
           <div className="tels-orgs-grid--cards">
@@ -62,13 +50,17 @@ const AboutPage = () => {
               <Link
                 key={s.slug}
                 to={`/school/${s.slug}`}
-                className="tels-org-card"
-                style={{ flexDirection: 'column', gap: '0.5rem' }}
+                className="tels-org-card tels-org-card--stacked"
               >
                 {s.logo
-                  ? <img src={s.logo} alt={s.name} />
-                  : <span style={{ fontWeight: 700, fontSize: '0.875rem', textAlign: 'center' }}>{s.name}</span>}
-                <span style={{ fontSize: '0.75rem', color: 'var(--pgn-color-chrome-text-muted)' }}>{s.name}</span>
+                  ? (
+                    <img
+                      src={s.logo}
+                      alt={intl.formatMessage(messages.orgLogoAlt, { name: s.name })}
+                    />
+                  )
+                  : <span className="tels-org-card__fallback">{s.name}</span>}
+                <span className="tels-org-card__caption">{s.name}</span>
               </Link>
             ))}
           </div>

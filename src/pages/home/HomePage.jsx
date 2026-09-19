@@ -2,19 +2,22 @@ import { Link } from 'react-router-dom';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   Palette, Briefcase, Code, Database, GraduationCap, HeartPulse,
-  Users, Sigma, Terminal, FlaskConical, Globe, BookOpen,
+  Users, Sigma, Terminal, FlaskConical, Globe, BookOpen, Monitor, MapPin,
 } from 'lucide-react';
 
 import CourseCard from '../../components/CourseCard';
 import EmailSignup from '../../components/EmailSignup';
+import SchoolsCarousel from '../../components/SchoolsCarousel';
 import {
   COURSES, SUBJECTS, SCHOOLS, FEATURED_TOPICS, TRENDING_GRAPHICS,
 } from '../../data/telsCourses';
 import taxonomyMessages, {
   formatAvailability,
+  formatModality,
   formatSubject,
 } from '../../i18n/taxonomyMessages';
-import heroImage from '../../assets/pll/pll-gates.jpg';
+import heroImage from '!!file-loader!../../assets/pll/hero-learning.webp';
+import ctaCampusImage from '!!file-loader!../../assets/pll/cta-campus.webp';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './messages';
 
@@ -33,14 +36,26 @@ const SUBJECT_ICONS = {
   Theology: BookOpen,
 };
 
-const SectionHeader = ({ title, viewAll }) => (
-  <div className="tels-section-header">
-    <h2 className="tels-section-header__title">{title}</h2>
-    {viewAll && (
-      <Link to={viewAll.to} className="tels-btn tels-btn--primary">{viewAll.label}</Link>
-    )}
-  </div>
-);
+const modalityIcon = (modality) => {
+  if (modality === 'In-Person') { return MapPin; }
+  if (modality === 'Blended') { return Users; }
+  return Monitor;
+};
+
+// PLL: Subjects = solid primary; Trending / Recently / Starting Soon = outline primary.
+const SectionHeader = ({ title, viewAll }) => {
+  const btnClass = viewAll?.variant === 'outline'
+    ? 'tels-btn tels-btn--outline'
+    : 'tels-btn tels-btn--primary';
+  return (
+    <div className="tels-section-header">
+      <h2 className="tels-section-header__title">{title}</h2>
+      {viewAll && (
+        <Link to={viewAll.to} className={btnClass}>{viewAll.label}</Link>
+      )}
+    </div>
+  );
+};
 
 const ThreeCards = ({ items }) => (
   <div className="tels-grid tels-grid--3">
@@ -51,6 +66,7 @@ const ThreeCards = ({ items }) => (
 const TrendingCard = ({ course, i }) => {
   const intl = useIntl();
   const g = TRENDING_GRAPHICS[i % TRENDING_GRAPHICS.length];
+  const ModalityIcon = modalityIcon(course.modality);
   const duration = course.duration.replace(/\s+long$/i, '');
   const price = course.price === 0
     ? intl.formatMessage(taxonomyMessages.freeStar)
@@ -62,17 +78,24 @@ const TrendingCard = ({ course, i }) => {
         <div className="tels-trending-card__code">
           <div>
             <div>{g.code}</div>
-            <div style={{ opacity: 0.8 }}>{g.code}</div>
-            <div style={{ opacity: 0.6 }}>{g.code}</div>
+            <div className="tels-trending-card__code-dim">{g.code}</div>
+            <div className="tels-trending-card__code-dimmer">{g.code}</div>
           </div>
         </div>
         <span className="tels-trending-card__glyph">{g.glyph}</span>
       </Link>
       <div className="tels-trending-card__body">
         <div className="tels-course-card__eyebrow">
-          <Link to={`/courses?subject=${encodeURIComponent(course.subject)}`}>
-            {formatSubject(intl, course.subject)}
-          </Link>
+          <div className="tels-course-card__subject">
+            <BookOpen size={13} aria-hidden="true" />
+            <Link to={`/courses?subject=${encodeURIComponent(course.subject)}`}>
+              {formatSubject(intl, course.subject)}
+            </Link>
+          </div>
+          <div className="tels-course-card__modality">
+            <ModalityIcon size={13} aria-hidden="true" />
+            <span>{formatModality(intl, course.modality)}</span>
+          </div>
         </div>
         <h3 className="tels-course-card__title">
           <Link to={`/course/${course.slug}`}>{course.title}</Link>
@@ -99,13 +122,19 @@ const HomePage = () => {
 
   return (
     <>
-      <section className="tels-hero" style={{ backgroundImage: `url('${heroImage}')` }}>
-        <div className="tels-container tels-hero__inner" style={{ textAlign: 'center' }}>
-          <h1 className="tels-hero__title" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+      <section className="tels-hero">
+        <img
+          className="tels-hero__media"
+          src={heroImage}
+          alt={intl.formatMessage(messages.heroImageAlt)}
+          decoding="async"
+        />
+        <div className="tels-container tels-hero__inner">
+          <h1 className="tels-hero__title">
             {intl.formatMessage(messages.heroTitle)}
           </h1>
-          <p className="tels-hero__subtitle">{intl.formatMessage(messages.heroSubtitle)}</p>
-          <div className="tels-hero__cta" style={{ justifyContent: 'center' }}>
+          <h2 className="tels-hero__subtitle">{intl.formatMessage(messages.heroSubtitle)}</h2>
+          <div className="tels-hero__cta">
             <Link to="/courses" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.allCourses)}</Link>
             <Link to="/courses?modality=Online" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.onlineCourses)}</Link>
             <Link to="/courses?price=Free" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.freeCourses)}</Link>
@@ -123,7 +152,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="tels-section" style={{ borderTop: '1px solid var(--pgn-color-chrome-border)', borderBottom: '1px solid var(--pgn-color-chrome-border)' }}>
+      <section className="tels-section tels-section--bordered">
         <div className="tels-container">
           <SectionHeader
             title={intl.formatMessage(messages.subjectAreas)}
@@ -135,7 +164,7 @@ const HomePage = () => {
               return (
                 <li key={s}>
                   <Link to={`/courses?subject=${encodeURIComponent(s)}`}>
-                    <SubjectIcon size={15} />
+                    <SubjectIcon size={18} />
                     <span>{formatSubject(intl, s)}</span>
                   </Link>
                 </li>
@@ -149,7 +178,7 @@ const HomePage = () => {
         <div className="tels-container">
           <SectionHeader
             title={intl.formatMessage(messages.trending)}
-            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewAllTrending) }}
+            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewAllTrending), variant: 'outline' }}
           />
           <div className="tels-grid tels-grid--3">
             {trending.map((c, i) => <TrendingCard key={c.slug} course={c} i={i} />)}
@@ -159,7 +188,7 @@ const HomePage = () => {
 
       <section className="tels-section">
         <div className="tels-container">
-          <h2 className="tels-section-header__title" style={{ marginBottom: '2rem' }}>
+          <h2 className="tels-section-header__title">
             {intl.formatMessage(messages.featuredTopics)}
           </h2>
           <div className="tels-topic-pills">
@@ -178,7 +207,7 @@ const HomePage = () => {
         <div className="tels-container">
           <SectionHeader
             title={intl.formatMessage(messages.recentlyAdded)}
-            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewRecentlyAdded) }}
+            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewRecentlyAdded), variant: 'outline' }}
           />
           <ThreeCards items={recent} />
         </div>
@@ -188,7 +217,7 @@ const HomePage = () => {
         <div className="tels-container">
           <SectionHeader
             title={intl.formatMessage(messages.startingSoon)}
-            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewStartingSoon) }}
+            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewStartingSoon), variant: 'outline' }}
           />
           <ThreeCards items={startingSoon} />
         </div>
@@ -211,26 +240,19 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="tels-section">
+      <section className="tels-orgs-band">
         <div className="tels-container">
-          <div className="tels-orgs-grid">
-            {SCHOOLS.filter((s) => s.logo).map((s) => (
-              <Link key={s.slug} to={`/school/${s.slug}`} style={{ textAlign: 'center' }}>
-                <img src={s.logo} alt={s.name} />
-                <figcaption>{s.name}</figcaption>
-              </Link>
-            ))}
-          </div>
+          <SchoolsCarousel schools={SCHOOLS} />
         </div>
       </section>
 
       <section
         className="tels-cta-photo"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?w=1920&auto=format&fit=crop')" }}
+        style={{ backgroundImage: `url('${ctaCampusImage}')` }}
       >
         <div className="tels-container tels-cta-photo__inner">
           <h2>{intl.formatMessage(messages.keepLearning)}</h2>
-          <Link to="/courses" className="tels-btn tels-btn--sm">{intl.formatMessage(messages.viewAllCourses)}</Link>
+          <Link to="/courses" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.viewAllCourses)}</Link>
         </div>
       </section>
     </>

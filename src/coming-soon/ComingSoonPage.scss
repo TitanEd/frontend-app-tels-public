@@ -1,1 +1,26 @@
-/* ComingSoonPage — layout uses shared utility / brand classes. */
+.tels-coming-soon {
+  padding: 2.5rem 0;
+  text-align: center;
+  font-family: var(--pgn-typography-font-family-base);
+}
+
+.tels-coming-soon__inner {
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.tels-coming-soon__title {
+  font-family: var(--pgn-typography-font-family-base);
+  font-size: var(--pgn-typography-font-size-h2-base);
+  font-weight: 300;
+  margin: 0 0 1rem;
+  color: var(--pgn-color-text-base);
+}
+
+.tels-coming-soon__body {
+  font-family: var(--pgn-typography-font-family-base);
+  font-size: var(--pgn-typography-font-size-base);
+  font-weight: 300;
+  color: var(--pgn-color-text-secondary);
+  margin: 0;
+}

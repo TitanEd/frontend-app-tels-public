@@ -12,6 +12,8 @@ import { FooterSlot } from '@edx/frontend-component-footer';
 import messages from './i18n';
 import AppRoutes from './routes/AppRoutes';
 import HeaderSlot from './plugin-slots/HeaderSlot';
+import LocaleDocument from './components/LocaleDocument';
+import SkipLink from './components/SkipLink';
 import { localIndigoConfig } from './plugin-slots/localIndigoConfig';
 
 import './index.scss';
@@ -25,9 +27,11 @@ subscribe(APP_READY, () => {
   root.render(
     <AppProvider>
       <QueryClientProvider client={queryClient}>
+        <LocaleDocument />
+        <SkipLink />
         <div className="tels-shell d-flex flex-column min-vh-100">
           <HeaderSlot />
-          <main id="main" className="flex-grow-1">
+          <main id="main" className="flex-grow-1" tabIndex={-1}>
             <AppRoutes />
           </main>
           <FooterSlot />
@@ -36,7 +40,6 @@ subscribe(APP_READY, () => {
     </AppProvider>,
   );
 });
-
 subscribe(APP_INIT_ERROR, (error) => {
   root.render(<ErrorPage message={error.message} />);
 });

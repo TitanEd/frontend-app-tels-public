@@ -68,7 +68,7 @@ const Dropdown = ({ label, active, children }) => {
   }, []);
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} className="tels-filter-dropdown">
       <button
         type="button"
         className={`tels-filter-trigger ${active || open ? 'is-active' : ''}`}
@@ -92,7 +92,7 @@ const Dropdown = ({ label, active, children }) => {
 const CheckOption = ({
   checked, onChange, children, disabled,
 }) => (
-  <label className="tels-filter-option" style={disabled ? { opacity: 0.6 } : undefined}>
+  <label className={`tels-filter-option${disabled ? ' tels-filter-option--disabled' : ''}`}>
     <input type="checkbox" checked={checked} disabled={disabled} onChange={onChange} />
     <span>{children}</span>
   </label>
@@ -188,7 +188,7 @@ const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
           <h1>{heading}</h1>
         </div>
         <div className="tels-filter-bar">
-          <div className="tels-container" style={{ display: 'flex', flexWrap: 'wrap' }}>
+          <div className="tels-container">
             <Dropdown label={intl.formatMessage(messages.filterSubject)} active={!!effective.subject}>
               {() => SUBJECTS.map((s) => (
                 <CheckOption

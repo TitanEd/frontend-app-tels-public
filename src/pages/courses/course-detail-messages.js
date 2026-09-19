@@ -14,17 +14,27 @@ const messages = defineMessages({
   enroll: {
     id: 'tels.course.enroll',
     defaultMessage: 'Enroll',
-    description: 'Course about Enroll CTA',
+    description: 'Course about primary CTA label',
   },
   enrollAria: {
     id: 'tels.course.enrollAria',
     defaultMessage: 'Enroll in {title}',
-    description: 'Course about Enroll aria-label',
+    description: 'Course about CTA aria-label',
   },
   duration: {
     id: 'tels.course.extras.duration',
     defaultMessage: 'Duration',
     description: 'Course extras screen-reader label',
+  },
+  durationLong: {
+    id: 'tels.course.fact.durationLong',
+    defaultMessage: '{duration} long',
+    description: 'Course facts duration value, e.g. “8 weeks long”',
+  },
+  registrationDeadline: {
+    id: 'tels.course.extras.registrationDeadline',
+    defaultMessage: 'Registration Deadline',
+    description: 'Course extras screen-reader label (PLL registration field)',
   },
   price: {
     id: 'tels.course.extras.price',
@@ -106,20 +116,30 @@ const messages = defineMessages({
     defaultMessage: 'Course description',
     description: 'Course body section heading',
   },
-  instructors: {
-    id: 'tels.course.instructors',
-    defaultMessage: 'Instructors',
-    description: 'Course instructors heading',
-  },
   enrollNow: {
     id: 'tels.course.enrollNow',
     defaultMessage: 'Enroll now.',
     description: 'Course enroll banner',
   },
+  schoolLogoAlt: {
+    id: 'tels.course.schoolLogoAlt',
+    defaultMessage: '{name} logo',
+    description: 'Alt text for associated school logo',
+  },
   youMayAlsoLike: {
     id: 'tels.course.youMayAlsoLike',
     defaultMessage: 'You may also like',
     description: 'Related courses heading',
+  },
+  instructors: {
+    id: 'tels.course.instructors',
+    defaultMessage: 'Instructors',
+    description: 'Course about instructors section heading',
+  },
+  courseImageAlt: {
+    id: 'tels.course.imageAlt',
+    defaultMessage: '{title}',
+    description: 'Course about hero/facts image alt text',
   },
 });
 
