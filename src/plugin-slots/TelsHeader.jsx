@@ -19,7 +19,9 @@ import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import ChromeLink from './ChromeLink';
 import LanguageMenu from './LanguageMenu';
-import { publicCoursesHref, publicHomeHref, resolvePublicMfeUrl } from './publicUrls';
+import {
+  isMarketingMfe, publicCoursesHref, publicHomeHref, resolvePublicMfeUrl,
+} from './publicUrls';
 import messages from './messages';
 import { formatSubject } from '../i18n/taxonomyMessages';
 import localLogo from '!!file-loader!../assets/brand/logo.webp';
@@ -82,7 +84,7 @@ const TelsHeader = () => {
   const homeUrl = publicHomeHref(config);
   const coursesUrl = resolvePublicMfeUrl('/courses', config);
 
-  const isPublicMfe = process.env.APP_ID === 'public';
+  const isPublicMfe = isMarketingMfe(config);
   const pathname = location?.pathname || '';
   const isHome = isPublicMfe && (pathname === '/' || pathname === '');
   // Same chrome as Tutor CustomHeader: hide “View all courses” only on public home.

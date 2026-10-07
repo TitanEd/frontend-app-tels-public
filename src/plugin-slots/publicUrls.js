@@ -239,3 +239,16 @@ export function ensurePublicMfePath(path, mount = PUBLIC_MFE_MOUNT) {
   const origin = collapseDoubledMount((mount || PUBLIC_MFE_MOUNT).replace(/\/$/, '') || PUBLIC_MFE_MOUNT);
   return joinOnPublicOrigin(origin, toPublicAppPath(path));
 }
+
+/**
+ * True inside a marketing MFE: APP_ID "public", or an app served at the configured
+ * public mount (its own PUBLIC_PATH equals INDIGO_HOME_URL, e.g. template-2 at
+ * /template-2 through MFE_CONFIG_OVERRIDES).
+ */
+export function isMarketingMfe(config) {
+  if (process.env.APP_ID === 'public') {
+    return true;
+  }
+  const ownMount = stripTrailingSlash(String(process.env.PUBLIC_PATH || ''));
+  return ownMount !== '' && ownMount === getPublicMfeMount(config);
+}

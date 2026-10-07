@@ -1,10 +1,14 @@
 import { NavLink } from 'react-router-dom';
+import { getConfig } from '@edx/frontend-platform';
 
-import { toPublicAppPath } from './publicUrls';
+import {
+  isMarketingMfe,
+  toPublicAppPath,
+} from './publicUrls';
 
 /** href is the real browser URL (/public, /public/courses?subject=…). */
 const ChromeLink = ({ href, className, children, ...rest }) => {
-  const inPublicApp = process.env.APP_ID === 'public';
+  const inPublicApp = isMarketingMfe(getConfig());
   if (inPublicApp && href && !href.startsWith('//')) {
     const to = toPublicAppPath(href);
     if (to && !to.startsWith('http://') && !to.startsWith('https://')) {
