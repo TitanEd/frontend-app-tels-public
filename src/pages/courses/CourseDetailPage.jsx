@@ -1,4 +1,7 @@
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import {
+  Link, Navigate, useParams, useSearchParams,
+} from 'react-router-dom';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getConfig } from '@edx/frontend-platform';
 import {
@@ -9,6 +12,7 @@ import {
   Gauge,
   GraduationCap,
   Landmark,
+  Languages,
   Monitor,
   Presentation,
   Signal,
@@ -19,7 +23,10 @@ import {
 import CourseCard from '../../components/CourseCard';
 import EmailSignup from '../../components/EmailSignup';
 import emailMessages from '../../components/email-signup-messages';
-import { COURSES, SCHOOLS } from '../../data/telsCourses';
+import {
+  fetchCatalogCourses, fetchCourseDetail, fetchCourseInstructors, findCourseKeyBySlug, isCourseKey,
+} from '../../data/api/catalog';
+import { buildLoginUrl, courseHomeUrl, enrollInCourse } from '../../data/api/enrollment';
 import taxonomyMessages, {
   formatDifficulty,
   formatModality,
@@ -27,7 +34,6 @@ import taxonomyMessages, {
   formatSubject,
   formatAvailability,
 } from '../../i18n/taxonomyMessages';
-import { getEnrollHref } from '../../lib/api';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import { getNoCourseImageUrl } from '../../lib/noCourseImage';
 import messages from './course-detail-messages';
@@ -49,65 +55,186 @@ const instructorInitials = (name) => {
   return `${parts[0].slice(0, 1)}${parts[parts.length - 1].slice(0, 1)}`.toUpperCase();
 };
 
-const EnrollButton = ({ title, href, className = 'tels-btn tels-btn--primary' }) => {
+/** Duration / effort text for the facts card: a real duration, else the weekly effort. */
+const timeFacts = (intl, course) => {
+  const duration = course.duration ? intl.formatMessage(messages.durationLong, { duration: course.duration }) : '';
+  const effort = typeof course.effortHours === 'number' && course.effortHours > 0
+    ? intl.formatMessage(messages.effortPerWeek, { hours: Math.round(course.effortHours * 10) / 10 })
+    : course.effort;
+  return { duration, effort };
+};
+
+/**
+ * Enrol control of the shared enrolment API (POST /api/v1/catalog/change-enrollment/):
+ * enrolled -> "Go to course"; may enrol -> enrol and follow the API's redirect; anonymous -> sign in
+ * and come back with ?enroll=1 so the enrolment completes without a second click.
+ */
+const EnrollControl = ({ course, autoEnroll, onAutoEnrollDone }) => {
   const intl = useIntl();
+  const config = getConfig();
+  const [state, setState] = useState({ busy: false, error: null });
+  const signedIn = Boolean(config.ACCESS_TOKEN_COOKIE_NAME) && typeof document !== 'undefined'
+    && document.cookie.split('; ').some((row) => row.startsWith(`${config.ACCESS_TOKEN_COOKIE_NAME}=`));
+
+  const enroll = async () => {
+    setState({ busy: true, error: null });
+    const result = await enrollInCourse(course.courseKey, { nextPath: `${window.location.href.split('?')[0]}?enroll=1` });
+    if (result.ok) {
+      window.location.assign(result.redirect);
+      return;
+    }
+    if (result.loginRequired) {
+      window.location.assign(result.loginUrl);
+      return;
+    }
+    setState({
+      busy: false,
+      error: result.message
+        ? intl.formatMessage(messages.enrollFailed, { message: result.message })
+        : intl.formatMessage(messages.enrollFailedGeneric),
+    });
+  };
+
+  useEffect(() => {
+    if (autoEnroll && signedIn && !course.isEnrolled && course.canEnroll) {
+      onAutoEnrollDone();
+      enroll();
+    } else if (autoEnroll) {
+      onAutoEnrollDone();
+    }
+  }, [autoEnroll]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (course.isEnrolled) {
+    return (
+      <a className="tels-btn tels-btn--primary" href={courseHomeUrl(course.courseKey)}>
+        {intl.formatMessage(messages.goToCourse)}
+      </a>
+    );
+  }
+  if (course.invitationOnly) {
+    return <p className="tels-enroll-banner__message">{intl.formatMessage(messages.invitationOnly)}</p>;
+  }
+  if (course.isCourseFull) {
+    return <p className="tels-enroll-banner__message">{intl.formatMessage(messages.courseFull)}</p>;
+  }
+  if (!course.canEnroll && signedIn) {
+    return <p className="tels-enroll-banner__message">{intl.formatMessage(messages.enrollmentClosed)}</p>;
+  }
+  if (!signedIn) {
+    return (
+      <a
+        className="tels-btn tels-btn--primary"
+        href={buildLoginUrl(`${window.location.href.split('?')[0]}?enroll=1`)}
+        aria-label={intl.formatMessage(messages.enrollAria, { title: course.title })}
+      >
+        {intl.formatMessage(messages.enroll)}
+      </a>
+    );
+  }
   return (
-    <a
-      className={className}
-      href={href}
-      aria-label={intl.formatMessage(messages.enrollAria, { title })}
-    >
-      {intl.formatMessage(messages.enroll)}
-    </a>
+    <>
+      <button
+        type="button"
+        className="tels-btn tels-btn--primary"
+        onClick={enroll}
+        disabled={state.busy}
+        aria-label={intl.formatMessage(messages.enrollAria, { title: course.title })}
+      >
+        {intl.formatMessage(state.busy ? messages.enrolling : messages.enroll)}
+      </button>
+      {state.error && <p className="tels-enroll-banner__message" role="alert">{state.error}</p>}
+    </>
   );
 };
 
+/** /courses/<course key> (and the legacy /course/<slug>): one course from the shared catalog detail API. */
 const CourseDetailPage = () => {
   const intl = useIntl();
-  const { slug } = useParams();
-  const course = COURSES.find((c) => c.slug === slug);
+  const { courseId, slug } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [state, setState] = useState({ loading: true, course: null, redirectKey: null });
+  const [instructors, setInstructors] = useState([]);
+  const [related, setRelated] = useState([]);
+  const autoEnroll = searchParams.get('enroll') === '1';
 
+  useEffect(() => {
+    let cancelled = false;
+    setState({ loading: true, course: null, redirectKey: null });
+    const load = async () => {
+      if (!courseId && slug && !isCourseKey(slug)) {
+        // Legacy slug URL: resolve through the search API and move to the canonical course-key URL.
+        const key = await findCourseKeyBySlug(slug);
+        if (!cancelled) { setState({ loading: false, course: null, redirectKey: key }); }
+        return;
+      }
+      const key = courseId || slug;
+      const course = await fetchCourseDetail(key);
+      if (cancelled) { return; }
+      setState({ loading: false, course, redirectKey: null });
+      if (course) {
+        fetchCourseInstructors(key).then((rows) => { if (!cancelled) { setInstructors(rows); } });
+        if (course.suggestedCourses.length) {
+          setRelated(course.suggestedCourses.filter((c) => c.courseKey !== key).slice(0, 3));
+        } else if (course.subject) {
+          fetchCatalogCourses({ subject: [course.subject], page_size: 4 })
+            .then(({ courses }) => {
+              if (!cancelled) { setRelated(courses.filter((c) => c.courseKey !== key).slice(0, 3)); }
+            });
+        }
+      }
+    };
+    load().catch(() => { if (!cancelled) { setState({ loading: false, course: null, redirectKey: null }); } });
+    return () => { cancelled = true; };
+  }, [courseId, slug]);
+
+  const { course } = state;
   useDocumentTitle(
     course
       ? intl.formatMessage(messages.docTitle, { title: course.title })
       : intl.formatMessage(messages.docTitleFallback),
   );
 
+  if (state.redirectKey) {
+    return <Navigate to={`/courses/${encodeURIComponent(state.redirectKey)}${autoEnroll ? '?enroll=1' : ''}`} replace />;
+  }
+  if (state.loading) {
+    return <div className="tels-container tels-course-about__state" aria-busy="true">{intl.formatMessage(messages.loading)}</div>;
+  }
   if (!course) {
-    return <Navigate to="/courses" replace />;
+    return (
+      <div className="tels-container tels-course-about__state">
+        <p>{intl.formatMessage(messages.notFound)}</p>
+        <Link to="/courses" className="tels-btn tels-btn--primary">{intl.formatMessage(messages.backToCatalog)}</Link>
+      </div>
+    );
   }
 
-  const school = SCHOOLS.find((s) => s.slug === course.schoolSlug)
-    || SCHOOLS.find((s) => s.name === course.school);
-  const related = COURSES.filter((c) => c.subject === course.subject && c.slug !== course.slug).slice(0, 3);
-  const priceLabel = course.price === 0
+  const priceLabel = course.free || course.price === 0
     ? intl.formatMessage(taxonomyMessages.freeStar)
-    : intl.formatNumber(course.price, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
-  const certPrice = course.price === 0 ? null : priceLabel;
-  // Longer PLL-style sub-header copy: short line + long description when distinct.
-  const heroTeaser = course.longDescription && course.longDescription !== course.description
-    ? `${course.description} ${course.longDescription}`
-    : (course.longDescription || course.description);
-  const enrollHref = getEnrollHref(course, getConfig());
+    : course.priceLabel;
+  const certPrice = course.free || !course.priceLabel || /free/i.test(course.priceLabel) ? null : course.priceLabel;
+  const { duration, effort } = timeFacts(intl, course);
+  const heroTeaser = course.description || course.longDescription.slice(0, 240);
+  const startDate = course.startDate ? new Date(course.startDate) : null;
 
   return (
     <article className="tels-course-about">
       <div className="tels-container tels-course-about__layout">
-        {/* Left stack + facts side-by-side: layout height includes the card so
-            it cannot paint over the Enroll banner. */}
         <div className="tels-course-about__main">
           <header className="tels-course-hero">
             <h1>{course.title}</h1>
-            <p className="tels-course-hero__teaser">{heroTeaser}</p>
+            {heroTeaser && <p className="tels-course-hero__teaser">{heroTeaser}</p>}
           </header>
 
           <div className="tels-course-extras">
             <div className="tels-course-extras__row">
-              <div className="tels-course-extras__item">
-                <Calendar size={22} aria-hidden="true" />
-                <span className="sr-only">{intl.formatMessage(messages.duration)}</span>
-                <span>{course.duration.replace(/\s*long$/i, '')}</span>
-              </div>
+              {(duration || effort) && (
+                <div className="tels-course-extras__item">
+                  <Calendar size={22} aria-hidden="true" />
+                  <span className="sr-only">{intl.formatMessage(messages.duration)}</span>
+                  <span>{course.duration || effort}</span>
+                </div>
+              )}
               <div className="tels-course-extras__item">
                 <ClipboardList size={22} aria-hidden="true" />
                 <span className="sr-only">{intl.formatMessage(messages.registrationDeadline)}</span>
@@ -136,17 +263,47 @@ const CourseDetailPage = () => {
 
           <div className="tels-course-about__primary">
             <div className="tels-course-body">
-              <section>
-                <h2 className="tels-detail-heading">{intl.formatMessage(messages.whatYoullLearn)}</h2>
-                <ul className="tels-course-learn">
-                  {course.learn.map((item) => <li key={item}>{item}</li>)}
-                </ul>
-              </section>
+              {course.overviewHtml && (
+                <section>
+                  <h2 className="tels-detail-heading">{intl.formatMessage(messages.courseDescription)}</h2>
+                  {/* The course's own "about" page content, authored in Studio (what the LMS about page renders). */}
+                  <div
+                    className="tels-course-body__copy tels-course-body__copy--html"
+                    dangerouslySetInnerHTML={{ __html: course.overviewHtml }} // eslint-disable-line react/no-danger
+                  />
+                </section>
+              )}
+              {!course.overviewHtml && course.description && (
+                <section>
+                  <h2 className="tels-detail-heading">{intl.formatMessage(messages.courseDescription)}</h2>
+                  <p className="tels-course-body__copy">{course.description}</p>
+                </section>
+              )}
 
-              <section>
-                <h2 className="tels-detail-heading">{intl.formatMessage(messages.courseDescription)}</h2>
-                <p className="tels-course-body__copy">{course.longDescription}</p>
-              </section>
+              {course.modules.length > 0 && (
+                <section>
+                  <h2 className="tels-detail-heading">{intl.formatMessage(messages.curriculum)}</h2>
+                  <ol className="tels-course-learn">
+                    {course.modules.map((m, index) => (
+                      <li key={`${index + 1}-${m.title}`}>
+                        {intl.formatMessage(messages.module, { number: index + 1, title: m.title })}
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+
+              {course.faq.length > 0 && (
+                <section>
+                  <h2 className="tels-detail-heading">{intl.formatMessage(messages.faq)}</h2>
+                  {course.faq.map((item) => (
+                    <details key={item.question} className="tels-syllabus-item">
+                      <summary>{item.question}</summary>
+                      <div className="body">{item.answer}</div>
+                    </details>
+                  ))}
+                </section>
+              )}
             </div>
           </div>
         </div>
@@ -167,21 +324,35 @@ const CourseDetailPage = () => {
             />
           </div>
           <div className="tels-course-facts__list">
-            <Fact icon={Calendar} label={intl.formatMessage(messages.duration)}>
-              {intl.formatMessage(messages.durationLong, {
-                duration: course.duration.replace(/\s*long$/i, ''),
-              })}
-            </Fact>
-            <Fact icon={Clock} label={intl.formatMessage(messages.timeCommitment)}>{course.timeCommitment}</Fact>
-            <Fact icon={Gauge} label={intl.formatMessage(messages.pace)}>{formatPace(intl, course.pace)}</Fact>
-            <Fact icon={GraduationCap} label={intl.formatMessage(messages.subject)}>
-              <Link to={`/courses?subject=${encodeURIComponent(course.subject)}`}>
-                {formatSubject(intl, course.subject)}
-              </Link>
-            </Fact>
-            <Fact icon={Signal} label={intl.formatMessage(messages.difficulty)}>
-              {formatDifficulty(intl, course.difficulty)}
-            </Fact>
+            {duration && <Fact icon={Calendar} label={intl.formatMessage(messages.duration)}>{duration}</Fact>}
+            {effort && <Fact icon={Clock} label={intl.formatMessage(messages.timeCommitment)}>{effort}</Fact>}
+            {startDate && !Number.isNaN(startDate.getTime()) && (
+              <Fact icon={Calendar} label={intl.formatMessage(messages.startDate)}>
+                {course.startDateLabel || intl.formatDate(startDate, { year: 'numeric', month: 'long', day: 'numeric' })}
+              </Fact>
+            )}
+            {course.pace && (
+              <Fact icon={Gauge} label={intl.formatMessage(messages.pace)}>{formatPace(intl, course.pace)}</Fact>
+            )}
+            {course.subject && (
+              <Fact icon={GraduationCap} label={intl.formatMessage(messages.subject)}>
+                <Link to={`/courses?subject=${encodeURIComponent(course.subject)}`}>
+                  {formatSubject(intl, course.subject)}
+                </Link>
+              </Fact>
+            )}
+            {course.difficulty && (
+              <Fact icon={Signal} label={intl.formatMessage(messages.difficulty)}>
+                {formatDifficulty(intl, course.difficulty)}
+              </Fact>
+            )}
+            {course.language && (
+              <Fact icon={Languages} label={intl.formatMessage(messages.language)}>
+                {intl.formatDisplayName
+                  ? (() => { try { return intl.formatDisplayName(course.language, { type: 'language' }); } catch { return course.language; } })()
+                  : course.language}
+              </Fact>
+            )}
             <Fact icon={Landmark} label={intl.formatMessage(messages.credit)}>
               {intl.formatMessage(messages.auditFree)}
               {certPrice ? (
@@ -194,40 +365,32 @@ const CourseDetailPage = () => {
             <Fact icon={Monitor} label={intl.formatMessage(messages.platform)}>
               {intl.formatMessage(messages.platformValue)}
             </Fact>
-            <Fact icon={Tag} label={intl.formatMessage(messages.topics)}>
-              <div className="tels-topic-chips">
-                {course.topics.map((t) => (
-                  <Link key={t} to={`/courses?keywords=${encodeURIComponent(t)}`} className="tels-topic-chip">
-                    {t}
-                  </Link>
-                ))}
-              </div>
-            </Fact>
+            {course.topics.length > 0 && (
+              <Fact icon={Tag} label={intl.formatMessage(messages.topics)}>
+                <div className="tels-topic-chips">
+                  {course.topics.map((t) => (
+                    <Link key={t} to={`/courses?skill=${encodeURIComponent(t)}`} className="tels-topic-chip">
+                      {t}
+                    </Link>
+                  ))}
+                </div>
+              </Fact>
+            )}
           </div>
-          {school && (
+          {course.school && (
             <div className="tels-course-facts__schools">
               <p className="tels-course-facts__schools-label">
-                {intl.formatMessage(messages.associatedSchools)}
+                {intl.formatMessage(messages.organization)}
               </p>
-              <Link to={`/courses?school=${encodeURIComponent(school.slug)}`} className="tels-course-school">
-                {school.logo ? (
-                  <span className="tels-course-school__logo">
-                    <img
-                      src={school.logo}
-                      alt={intl.formatMessage(messages.schoolLogoAlt, { name: school.name })}
-                      width={96}
-                      height={116}
-                    />
-                  </span>
-                ) : null}
-                <span>{school.name}</span>
+              <Link to={`/school/${encodeURIComponent(course.org || course.school)}`} className="tels-course-school">
+                <span>{course.school}</span>
               </Link>
             </div>
           )}
         </aside>
       </div>
 
-      {Array.isArray(course.instructors) && course.instructors.length > 0 && (
+      {instructors.length > 0 && (
         <section
           className="tels-course-faculty"
           aria-labelledby="tels-course-instructors-heading"
@@ -237,7 +400,7 @@ const CourseDetailPage = () => {
               {intl.formatMessage(messages.instructors)}
             </h2>
             <ul className="tels-course-faculty__grid">
-              {course.instructors.map((person) => (
+              {instructors.map((person) => (
                 <li key={`${person.name}-${person.title}`} className="tels-course-faculty__item">
                   <article className="tels-instructor-card">
                     <div className="tels-instructor-card__media" aria-hidden="true">
@@ -273,7 +436,15 @@ const CourseDetailPage = () => {
       <section className="tels-enroll-banner" id="enroll" aria-label={intl.formatMessage(messages.enrollNow)}>
         <div className="tels-container tels-enroll-banner__inner">
           <p className="tels-enroll-banner__stat">{intl.formatMessage(messages.enrollNow)}</p>
-          <EnrollButton title={course.title} href={enrollHref} />
+          <EnrollControl
+            course={course}
+            autoEnroll={autoEnroll}
+            onAutoEnrollDone={() => {
+              const next = new URLSearchParams(searchParams);
+              next.delete('enroll');
+              setSearchParams(next, { replace: true });
+            }}
+          />
         </div>
       </section>
 
@@ -285,7 +456,7 @@ const CourseDetailPage = () => {
                 {intl.formatMessage(messages.youMayAlsoLike)}
               </h2>
               <div className="tels-grid tels-grid--3">
-                {related.map((item) => <CourseCard key={item.slug} course={item} />)}
+                {related.map((item) => <CourseCard key={item.courseKey || item.slug} course={item} />)}
               </div>
             </div>
           </section>

@@ -1,6 +1,11 @@
 import { defineMessages } from '@edx/frontend-platform/i18n';
 
 const messages = defineMessages({
+  hoursPerWeek: {
+    id: 'tels.card.hoursPerWeek',
+    defaultMessage: '{hours, plural, one {# hour} other {# hours}} per week',
+    description: 'Weekly effort of a course on a course card',
+  },
   durationLong: {
     id: 'tels.card.durationLong',
     defaultMessage: '{duration} long',

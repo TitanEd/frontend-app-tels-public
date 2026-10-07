@@ -7,53 +7,45 @@ import { ChevronDown, X } from 'lucide-react';
 
 import CourseCard from '../../components/CourseCard';
 import EmailSignup from '../../components/EmailSignup';
-import { COURSES, SUBJECTS, SCHOOLS } from '../../data/telsCourses';
-import taxonomyMessages, {
-  formatDifficulty,
-  formatDurationBucket,
-  formatModality,
-  formatSubject,
-} from '../../i18n/taxonomyMessages';
+import Pagination from '../../components/Pagination';
+import { fetchCatalogCourses, fetchTaxonomy } from '../../data/api/catalog';
+import taxonomyMessages, { formatDifficulty, formatSubject } from '../../i18n/taxonomyMessages';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './courses-messages';
 
-const DURATION_BUCKETS = [
-  { label: '0-1 weeks', min: 0, max: 1 },
-  { label: '1-2 weeks', min: 1, max: 2 },
-  { label: '2-4 weeks', min: 2, max: 4 },
-  { label: '4-8 weeks', min: 4, max: 8 },
-  { label: '8-12 weeks', min: 8, max: 12 },
-  { label: '12+ weeks', min: 12, max: 999 },
-];
-const DIFFICULTIES = ['Introductory', 'Intermediate', 'Advanced'];
-const MODALITIES = ['In-Person', 'Blended', 'Online', 'Online Live'];
+const PAGE_SIZE = 12;
+const EMPTY_TAXONOMY = { subjects: [], skills: [], levels: [] };
 
-const filterCourses = (courses, s) => courses.filter((c) => {
-  if (s.keywords) {
-    const q = s.keywords.toLowerCase();
-    const inTitle = c.title.toLowerCase().includes(q);
-    const inDescription = c.description.toLowerCase().includes(q);
-    const inTopics = c.topics.some((t) => t.toLowerCase().includes(q));
-    if (!(inTitle || inDescription || inTopics)) {
-      return false;
-    }
+const csv = (value) => String(value || '').split(',').filter(Boolean);
+
+/**
+ * URL state -> parameters of the shared catalog API (GET /api/v1/catalog/courses/):
+ *   keywords -> search_string, subject -> subject[], skill -> skill[], difficulty -> level[],
+ *   price (Free | Paid) -> free, start (available | upcoming) -> start_before / start_after,
+ *   org -> org[], page -> page_index. Nothing is filtered in the browser.
+ */
+const toApiParams = (search, lockedSubject, lockedOrg) => {
+  const params = {
+    page_size: PAGE_SIZE,
+    page_index: Math.max(0, (Number(search.page) || 1) - 1),
+    search_string: search.keywords || '',
+    sort: 'start_desc',
+  };
+  const subjects = lockedSubject ? [lockedSubject] : csv(search.subject);
+  if (subjects.length) { params.subject = subjects; }
+  const skills = csv(search.skill);
+  if (skills.length) { params.skill = skills; }
+  if (search.difficulty) { params.level = [search.difficulty]; }
+  if (search.price === 'Free') { params.free = true; }
+  if (search.price === 'Paid') { params.free = false; }
+  if (search.start === 'upcoming') {
+    params.start_after = new Date().toISOString();
+    params.sort = 'start_asc';
   }
-  if (s.subject) {
-    if (!s.subject.split(',').includes(c.subject)) { return false; }
-  }
-  if (s.price === 'Free' && c.price !== 0) { return false; }
-  if (s.price === 'Paid' && c.price === 0) { return false; }
-  if (s.school) {
-    if (!s.school.split(',').includes(c.schoolSlug)) { return false; }
-  }
-  if (s.duration) {
-    const bucket = DURATION_BUCKETS.find((b) => b.label === s.duration);
-    if (bucket && !(c.durationWeeks >= bucket.min && c.durationWeeks < bucket.max)) { return false; }
-  }
-  if (s.difficulty && c.difficulty !== s.difficulty) { return false; }
-  if (s.modality && c.modality !== s.modality) { return false; }
-  return true;
-});
+  if (search.start === 'available') { params.start_before = new Date().toISOString(); }
+  if (lockedOrg) { params.org = [lockedOrg]; }
+  return params;
+};
 
 const Dropdown = ({ label, active, children }) => {
   const [open, setOpen] = useState(false);
@@ -90,11 +82,12 @@ const Dropdown = ({ label, active, children }) => {
 };
 
 const CheckOption = ({
-  checked, onChange, children, disabled,
+  checked, onChange, children, disabled, count,
 }) => (
   <label className={`tels-filter-option${disabled ? ' tels-filter-option--disabled' : ''}`}>
     <input type="checkbox" checked={checked} disabled={disabled} onChange={onChange} />
     <span>{children}</span>
+    {typeof count === 'number' && <span className="tels-filter-option__count">{count}</span>}
   </label>
 );
 
@@ -105,7 +98,19 @@ const RadioOption = ({ checked, onChange, children }) => (
   </label>
 );
 
-const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
+const SkeletonCard = () => (
+  <article className="tels-course-card tels-course-card--skeleton" aria-hidden="true">
+    <div className="tels-course-card__media" />
+    <div className="tels-course-card__body">
+      <div className="tels-skeleton-line tels-skeleton-line--short" />
+      <div className="tels-skeleton-line" />
+      <div className="tels-skeleton-line" />
+      <div className="tels-skeleton-line tels-skeleton-line--short" />
+    </div>
+  </article>
+);
+
+const CoursesPage = ({ title, lockedSubject, lockedOrg }) => {
   const intl = useIntl();
   const heading = title || intl.formatMessage(messages.heading);
   useDocumentTitle(
@@ -118,22 +123,56 @@ const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
   const search = useMemo(() => ({
     keywords: searchParams.get('keywords') || undefined,
     subject: searchParams.get('subject') || undefined,
+    skill: searchParams.get('skill') || undefined,
     price: searchParams.get('price') || undefined,
-    school: searchParams.get('school') || undefined,
-    duration: searchParams.get('duration') || undefined,
+    start: searchParams.get('start') || undefined,
     difficulty: searchParams.get('difficulty') || undefined,
-    modality: searchParams.get('modality') || undefined,
+    page: searchParams.get('page') || undefined,
   }), [searchParams]);
 
-  const effective = {
-    ...search,
-    subject: lockedSubject ?? search.subject,
-    school: lockedSchool ?? search.school,
-  };
-  const results = useMemo(() => filterCourses(COURSES, effective), [effective]);
+  const [taxonomy, setTaxonomy] = useState(EMPTY_TAXONOMY);
+  useEffect(() => {
+    let cancelled = false;
+    fetchTaxonomy().then((result) => { if (!cancelled) { setTaxonomy(result); } }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
-  const update = (patch) => {
+  const [results, setResults] = useState({
+    loading: true, failed: false, courses: [], total: 0,
+  });
+  const apiParams = useMemo(() => toApiParams(search, lockedSubject, lockedOrg), [search, lockedSubject, lockedOrg]);
+  const requestKey = JSON.stringify({
+    ...apiParams,
+    start_after: Boolean(apiParams.start_after),
+    start_before: Boolean(apiParams.start_before),
+  });
+  useEffect(() => {
+    let cancelled = false;
+    setResults((prev) => ({ ...prev, loading: true, failed: false }));
+    fetchCatalogCourses(apiParams)
+      .then(({ courses, total }) => {
+        if (!cancelled) {
+          setResults({
+            loading: false, failed: false, courses, total,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setResults({
+            loading: false, failed: true, courses: [], total: 0,
+          });
+        }
+      });
+    return () => { cancelled = true; };
+  }, [requestKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const page = Math.max(1, Number(search.page) || 1);
+  const pageCount = Math.max(1, Math.ceil(results.total / PAGE_SIZE));
+
+  const update = (patch, { keepPage = false } = {}) => {
     const next = { ...search, ...patch };
+    if (!keepPage) { next.page = undefined; }
     const params = {};
     Object.keys(next).forEach((k) => {
       if (next[k]) { params[k] = next[k]; }
@@ -142,42 +181,49 @@ const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
   };
 
   const toggleCsv = (key, value) => {
-    const cur = (search[key] || '').split(',').filter(Boolean);
+    const cur = csv(search[key]);
     const next = cur.includes(value) ? cur.filter((v) => v !== value) : [...cur, value];
     update({ [key]: next.length ? next.join(',') : undefined });
   };
 
+  const goToPage = (nextPage) => {
+    update({ page: nextPage > 1 ? String(nextPage) : undefined }, { keepPage: true });
+    if (typeof window !== 'undefined') { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  };
+
   const clearAll = () => setSearchParams({});
 
+  const selectedSubjects = lockedSubject ? [lockedSubject] : csv(search.subject);
+  const selectedSkills = csv(search.skill);
+
   const activeChips = [];
-  if (search.keywords) { activeChips.push({ label: `"${search.keywords}"`, onRemove: () => update({ keywords: undefined }) }); }
-  (search.subject || '').split(',').filter(Boolean).forEach((s) => activeChips.push({ label: formatSubject(intl, s), onRemove: () => toggleCsv('subject', s) }));
-  (search.school || '').split(',').filter(Boolean).forEach((s) => {
-    const name = SCHOOLS.find((x) => x.slug === s)?.name || s;
-    activeChips.push({ label: name, onRemove: () => toggleCsv('school', s) });
-  });
+  if (search.keywords) {
+    activeChips.push({ key: 'kw', label: `"${search.keywords}"`, onRemove: () => update({ keywords: undefined }) });
+  }
+  if (!lockedSubject) {
+    selectedSubjects.forEach((s) => activeChips.push({
+      key: `subject-${s}`, label: formatSubject(intl, s), onRemove: () => toggleCsv('subject', s),
+    }));
+  }
+  selectedSkills.forEach((s) => activeChips.push({
+    key: `skill-${s}`, label: s, onRemove: () => toggleCsv('skill', s),
+  }));
   if (search.price) {
     const priceLabel = search.price === 'Free'
       ? intl.formatMessage(taxonomyMessages.free)
       : intl.formatMessage(taxonomyMessages.paid);
-    activeChips.push({ label: priceLabel, onRemove: () => update({ price: undefined }) });
+    activeChips.push({ key: 'price', label: priceLabel, onRemove: () => update({ price: undefined }) });
   }
-  if (search.duration) {
+  if (search.start) {
     activeChips.push({
-      label: formatDurationBucket(intl, search.duration),
-      onRemove: () => update({ duration: undefined }),
+      key: 'start',
+      label: intl.formatMessage(search.start === 'upcoming' ? messages.startUpcoming : messages.startAvailable),
+      onRemove: () => update({ start: undefined }),
     });
   }
   if (search.difficulty) {
     activeChips.push({
-      label: formatDifficulty(intl, search.difficulty),
-      onRemove: () => update({ difficulty: undefined }),
-    });
-  }
-  if (search.modality) {
-    activeChips.push({
-      label: formatModality(intl, search.modality),
-      onRemove: () => update({ modality: undefined }),
+      key: 'difficulty', label: formatDifficulty(intl, search.difficulty), onRemove: () => update({ difficulty: undefined }),
     });
   }
 
@@ -189,15 +235,16 @@ const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
         </div>
         <div className="tels-filter-bar">
           <div className="tels-container">
-            <Dropdown label={intl.formatMessage(messages.filterSubject)} active={!!effective.subject}>
-              {() => SUBJECTS.map((s) => (
+            <Dropdown label={intl.formatMessage(messages.filterSubject)} active={selectedSubjects.length > 0}>
+              {() => taxonomy.subjects.map((s) => (
                 <CheckOption
-                  key={s}
-                  checked={(effective.subject || '').split(',').includes(s)}
-                  disabled={lockedSubject === s}
-                  onChange={() => toggleCsv('subject', s)}
+                  key={s.id}
+                  checked={selectedSubjects.includes(s.name)}
+                  disabled={lockedSubject === s.name}
+                  onChange={() => toggleCsv('subject', s.name)}
+                  count={s.courseCount}
                 >
-                  {formatSubject(intl, s)}
+                  {formatSubject(intl, s.name)}
                 </CheckOption>
               ))}
             </Dropdown>
@@ -216,48 +263,38 @@ const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
                 </>
               )}
             </Dropdown>
-            <Dropdown label={intl.formatMessage(messages.filterStartDate)}>
+            <Dropdown label={intl.formatMessage(messages.filterStartDate)} active={!!search.start}>
               {() => (
                 <>
-                  <RadioOption checked onChange={() => {}}>{intl.formatMessage(taxonomyMessages.any)}</RadioOption>
-                  <RadioOption checked={false} onChange={() => {}}>
-                    {intl.formatMessage(taxonomyMessages.availableNow)}
+                  <RadioOption checked={!search.start} onChange={() => update({ start: undefined })}>
+                    {intl.formatMessage(messages.startAny)}
                   </RadioOption>
-                  <RadioOption checked={false} onChange={() => {}}>
-                    {intl.formatMessage(taxonomyMessages.startsSoon)}
+                  <RadioOption checked={search.start === 'available'} onChange={() => update({ start: 'available' })}>
+                    {intl.formatMessage(messages.startAvailable)}
+                  </RadioOption>
+                  <RadioOption checked={search.start === 'upcoming'} onChange={() => update({ start: 'upcoming' })}>
+                    {intl.formatMessage(messages.startUpcoming)}
                   </RadioOption>
                 </>
               )}
             </Dropdown>
-            <Dropdown label={intl.formatMessage(messages.filterSchools)} active={!!effective.school}>
-              {() => SCHOOLS.map((s) => (
-                <CheckOption
-                  key={s.slug}
-                  checked={(effective.school || '').split(',').includes(s.slug)}
-                  disabled={lockedSchool === s.slug}
-                  onChange={() => toggleCsv('school', s.slug)}
-                >
-                  {s.name}
-                </CheckOption>
-              ))}
-            </Dropdown>
-            <Dropdown label={intl.formatMessage(messages.filterDuration)} active={!!search.duration}>
-              {() => (
-                <>
-                  <RadioOption checked={!search.duration} onChange={() => update({ duration: undefined })}>
+            <Dropdown label={intl.formatMessage(messages.filterSkills)} active={selectedSkills.length > 0}>
+              {() => (taxonomy.skills.length === 0
+                ? (
+                  <span className="tels-filter-option tels-filter-option--disabled">
                     {intl.formatMessage(taxonomyMessages.any)}
-                  </RadioOption>
-                  {DURATION_BUCKETS.map((b) => (
-                    <RadioOption
-                      key={b.label}
-                      checked={search.duration === b.label}
-                      onChange={() => update({ duration: b.label })}
-                    >
-                      {formatDurationBucket(intl, b.label)}
-                    </RadioOption>
-                  ))}
-                </>
-              )}
+                  </span>
+                )
+                : taxonomy.skills.map((s) => (
+                  <CheckOption
+                    key={s.id}
+                    checked={selectedSkills.includes(s.name)}
+                    onChange={() => toggleCsv('skill', s.name)}
+                    count={s.courseCount}
+                  >
+                    {s.name}
+                  </CheckOption>
+                )))}
             </Dropdown>
             <Dropdown label={intl.formatMessage(messages.filterDifficulty)} active={!!search.difficulty}>
               {() => (
@@ -265,23 +302,13 @@ const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
                   <RadioOption checked={!search.difficulty} onChange={() => update({ difficulty: undefined })}>
                     {intl.formatMessage(taxonomyMessages.any)}
                   </RadioOption>
-                  {DIFFICULTIES.map((d) => (
-                    <RadioOption key={d} checked={search.difficulty === d} onChange={() => update({ difficulty: d })}>
-                      {formatDifficulty(intl, d)}
-                    </RadioOption>
-                  ))}
-                </>
-              )}
-            </Dropdown>
-            <Dropdown label={intl.formatMessage(messages.filterModality)} active={!!search.modality}>
-              {() => (
-                <>
-                  <RadioOption checked={!search.modality} onChange={() => update({ modality: undefined })}>
-                    {intl.formatMessage(taxonomyMessages.any)}
-                  </RadioOption>
-                  {MODALITIES.map((m) => (
-                    <RadioOption key={m} checked={search.modality === m} onChange={() => update({ modality: m })}>
-                      {formatModality(intl, m)}
+                  {taxonomy.levels.map((d) => (
+                    <RadioOption
+                      key={d.id}
+                      checked={search.difficulty === d.name}
+                      onChange={() => update({ difficulty: d.name })}
+                    >
+                      {formatDifficulty(intl, d.name)}
                     </RadioOption>
                   ))}
                 </>
@@ -291,20 +318,27 @@ const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
         </div>
       </section>
 
-      <section className="tels-courses-results">
+      <section className="tels-courses-results" aria-busy={results.loading}>
         <div className="tels-container">
           <div className="tels-results-head">
             <h2>
-              {intl.formatMessage(
-                activeChips.length > 0 ? messages.resultsFor : messages.results,
-                { count: results.length },
-              )}
+              {results.loading
+                ? intl.formatMessage(messages.loading)
+                : intl.formatMessage(
+                  activeChips.length > 0 ? messages.resultsFor : messages.results,
+                  { count: results.total },
+                )}
             </h2>
+            {!results.loading && pageCount > 1 && (
+              <span className="tels-results-head__page">
+                {intl.formatMessage(messages.pageOf, { page, pageCount })}
+              </span>
+            )}
           </div>
           {activeChips.length > 0 && (
             <div className="tels-chips">
               {activeChips.map((c) => (
-                <span key={c.label} className="tels-chip">
+                <span key={c.key} className="tels-chip">
                   {c.label}
                   <button
                     type="button"
@@ -320,13 +354,23 @@ const CoursesPage = ({ title, lockedSubject, lockedSchool }) => {
               </button>
             </div>
           )}
-          {results.length === 0 ? (
-            <div className="tels-empty">{intl.formatMessage(messages.empty)}</div>
-          ) : (
+          {results.loading && (
             <div className="tels-grid tels-grid--3">
-              {results.map((c) => <CourseCard key={c.slug} course={c} />)}
+              {[0, 1, 2].map((i) => <SkeletonCard key={i} />)}
             </div>
           )}
+          {!results.loading && results.failed && (
+            <div className="tels-empty" role="alert">{intl.formatMessage(messages.loadFailed)}</div>
+          )}
+          {!results.loading && !results.failed && results.courses.length === 0 && (
+            <div className="tels-empty">{intl.formatMessage(messages.empty)}</div>
+          )}
+          {!results.loading && !results.failed && results.courses.length > 0 && (
+            <div className="tels-grid tels-grid--3">
+              {results.courses.map((c) => <CourseCard key={c.courseKey || c.slug} course={c} />)}
+            </div>
+          )}
+          {!results.loading && <Pagination page={page} pageCount={pageCount} onChange={goToPage} />}
         </div>
       </section>
 

@@ -1,20 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  Search,
-  Palette,
-  Briefcase,
-  Code,
-  Database,
-  GraduationCap,
-  HeartPulse,
-  Users,
-  Sigma,
-  Terminal,
-  FlaskConical,
-  Globe,
-  BookOpen,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import ChromeLink from './ChromeLink';
@@ -24,38 +10,12 @@ import {
 } from './publicUrls';
 import messages from './messages';
 import { formatSubject } from '../i18n/taxonomyMessages';
+import { useSubjects } from '../data/api/useCatalog';
+import { subjectIcon } from '../components/subjectIcons';
 import localLogo from '!!file-loader!../assets/brand/logo.webp';
 import './TelsHeader.scss';
 
-const SUBJECTS = [
-  'Art & Design',
-  'Business',
-  'Computer Science',
-  'Data Science',
-  'Education & Teaching',
-  'Health & Medicine',
-  'Humanities',
-  'Mathematics',
-  'Programming',
-  'Science',
-  'Social Sciences',
-  'Theology',
-];
-
-const SUBJECT_ICONS = {
-  'Art & Design': Palette,
-  Business: Briefcase,
-  'Computer Science': Code,
-  'Data Science': Database,
-  'Education & Teaching': GraduationCap,
-  'Health & Medicine': HeartPulse,
-  Humanities: Users,
-  Mathematics: Sigma,
-  Programming: Terminal,
-  Science: FlaskConical,
-  'Social Sciences': Globe,
-  Theology: BookOpen,
-};
+// Subject areas come from the catalog API (useSubjects); icons from components/subjectIcons.js.
 
 /**
  * Same widget as tutor-tels-theme-plugins TelsHeader (tels_header slot).
@@ -70,6 +30,7 @@ const TelsHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const subjects = useSubjects();
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState(() => {
     try {
@@ -211,18 +172,18 @@ const TelsHeader = () => {
               {intl.formatMessage(messages.browseBySubject)}
             </h2>
             <ul className="tels-header__subjects">
-              {SUBJECTS.map((subject) => {
-                const SubjectIcon = SUBJECT_ICONS[subject] || BookOpen;
+              {subjects.map((subject) => {
+                const SubjectIcon = subjectIcon(subject);
                 return (
-                  <li key={subject}>
+                  <li key={subject.id}>
                     <ChromeLink
-                      href={publicCoursesHref(config, { subject })}
+                      href={publicCoursesHref(config, { subject: subject.name })}
                       className="tels-header__subject-link"
                       onClick={closeMenu}
                       tabIndex={menuOpen ? 0 : -1}
                     >
                       <SubjectIcon size={20} />
-                      <span>{formatSubject(intl, subject)}</span>
+                      <span>{formatSubject(intl, subject.name)}</span>
                     </ChromeLink>
                   </li>
                 );

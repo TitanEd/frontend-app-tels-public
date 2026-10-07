@@ -10,6 +10,7 @@ import taxonomyMessages, {
   formatSubject,
 } from '../i18n/taxonomyMessages';
 import { getNoCourseImageUrl } from '../lib/noCourseImage';
+import { formatCourseTime } from './courseMeta';
 import messages from './course-card-messages';
 
 const modalityIcon = (modality) => {
@@ -21,7 +22,7 @@ const modalityIcon = (modality) => {
 const CourseCard = ({ course }) => {
   const intl = useIntl();
   const ModalityIcon = modalityIcon(course.modality);
-  const duration = course.duration.replace(/\s*long$/i, '');
+  const timeText = formatCourseTime(intl, course, messages);
   const price = course.price === 0
     ? intl.formatMessage(taxonomyMessages.freeStar)
     : intl.formatNumber(course.price, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -30,7 +31,7 @@ const CourseCard = ({ course }) => {
   return (
     <article className="tels-course-card">
       <Link
-        to={`/course/${course.slug}`}
+        to={`/courses/${encodeURIComponent(course.courseKey || course.slug)}`}
         className="tels-course-card__img"
         aria-label={intl.formatMessage(messages.courseLinkAria, { title: course.title })}
       >
@@ -62,12 +63,12 @@ const CourseCard = ({ course }) => {
           </div>
         </div>
         <h3 className="tels-course-card__title">
-          <Link to={`/course/${course.slug}`}>{course.title}</Link>
+          <Link to={`/courses/${encodeURIComponent(course.courseKey || course.slug)}`}>{course.title}</Link>
         </h3>
         <p className="tels-course-card__desc">{course.description}</p>
         <div className="tels-course-card__meta">
           <span className="tels-course-card__price">{price}</span>
-          <span>{intl.formatMessage(messages.durationLong, { duration })}</span>
+          {timeText && <span>{timeText}</span>}
           <span>{formatAvailability(intl, course.availability)}</span>
         </div>
       </div>

@@ -91,6 +91,46 @@ const messages = defineMessages({
     defaultMessage: '{name} logo',
     description: 'School landing page logo alt text',
   },
+  filterSkills: {
+    id: 'tels.courses.filter.skills',
+    defaultMessage: 'Skills',
+    description: 'Catalog filter: skills',
+  },
+  startAny: {
+    id: 'tels.courses.filter.start.any',
+    defaultMessage: 'Any start date',
+    description: 'Catalog start date filter: no constraint',
+  },
+  startAvailable: {
+    id: 'tels.courses.filter.start.available',
+    defaultMessage: 'Available now',
+    description: 'Catalog start date filter: started or self-paced courses',
+  },
+  startUpcoming: {
+    id: 'tels.courses.filter.start.upcoming',
+    defaultMessage: 'Starting soon',
+    description: 'Catalog start date filter: courses starting in the future',
+  },
+  loading: {
+    id: 'tels.courses.loading',
+    defaultMessage: 'Loading courses…',
+    description: 'Catalog results loading state',
+  },
+  loadFailed: {
+    id: 'tels.courses.loadFailed',
+    defaultMessage: 'The courses could not be loaded. Please try again.',
+    description: 'Catalog results error state',
+  },
+  pageOf: {
+    id: 'tels.courses.pageOf',
+    defaultMessage: 'Page {page} of {pageCount}',
+    description: 'Catalog pagination summary',
+  },
+  orgCourses: {
+    id: 'tels.courses.orgCourses',
+    defaultMessage: '{org} courses',
+    description: 'Heading of the catalog filtered to one organization',
+  },
 });
 
 export default messages;

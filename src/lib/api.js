@@ -72,7 +72,9 @@ export async function apiRequest(path, {
   try {
     const response = await fetch(joinUrl(base, path), {
       method,
-      credentials: 'same-origin',
+      // The LMS is another origin (apps host vs LMS host): send the session so the catalog answers
+      // with the visitor's own enrollment state and visibility. CORS allows credentials for the MFE hosts.
+      credentials: 'include',
       headers: {
         Accept: 'application/json',
         ...(body ? { 'Content-Type': 'application/json' } : {}),

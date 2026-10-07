@@ -1,16 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
-  Palette, Briefcase, Code, Database, GraduationCap, HeartPulse,
-  Users, Sigma, Terminal, FlaskConical, Globe, BookOpen, Monitor, MapPin,
+  BookOpen, MapPin, Monitor, Users,
 } from 'lucide-react';
 
 import CourseCard from '../../components/CourseCard';
 import EmailSignup from '../../components/EmailSignup';
 import SchoolsCarousel from '../../components/SchoolsCarousel';
-import {
-  COURSES, SUBJECTS, SCHOOLS, FEATURED_TOPICS, TRENDING_GRAPHICS,
-} from '../../data/telsCourses';
+import { SCHOOLS, FEATURED_TOPICS, TRENDING_GRAPHICS } from '../../data/telsCourses';
+import { useHomeSections, useSubjects } from '../../data/api/useCatalog';
+import { subjectIcon } from '../../components/subjectIcons';
+import { formatCourseTime } from '../../components/courseMeta';
+import cardMessages from '../../components/course-card-messages';
 import taxonomyMessages, {
   formatAvailability,
   formatModality,
@@ -21,20 +22,7 @@ import ctaCampusImage from '!!file-loader!../../assets/pll/cta-campus.webp';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './messages';
 
-const SUBJECT_ICONS = {
-  'Art & Design': Palette,
-  Business: Briefcase,
-  'Computer Science': Code,
-  'Data Science': Database,
-  'Education & Teaching': GraduationCap,
-  'Health & Medicine': HeartPulse,
-  Humanities: Users,
-  Mathematics: Sigma,
-  Programming: Terminal,
-  Science: FlaskConical,
-  'Social Sciences': Globe,
-  Theology: BookOpen,
-};
+// Subject areas and the four course sections come from the catalog API (src/data/api/catalog.js).
 
 const modalityIcon = (modality) => {
   if (modality === 'In-Person') { return MapPin; }
@@ -67,14 +55,14 @@ const TrendingCard = ({ course, i }) => {
   const intl = useIntl();
   const g = TRENDING_GRAPHICS[i % TRENDING_GRAPHICS.length];
   const ModalityIcon = modalityIcon(course.modality);
-  const duration = course.duration.replace(/\s+long$/i, '');
+  const timeText = formatCourseTime(intl, course, cardMessages);
   const price = course.price === 0
     ? intl.formatMessage(taxonomyMessages.freeStar)
     : intl.formatNumber(course.price, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
   return (
     <article className="tels-trending-card">
-      <Link to={`/course/${course.slug}`} className="tels-trending-card__thumb" style={{ background: g.gradient }}>
+      <Link to={`/courses/${encodeURIComponent(course.courseKey || course.slug)}`} className="tels-trending-card__thumb" style={{ background: g.gradient }}>
         <div className="tels-trending-card__code">
           <div>
             <div>{g.code}</div>
@@ -98,12 +86,12 @@ const TrendingCard = ({ course, i }) => {
           </div>
         </div>
         <h3 className="tels-course-card__title">
-          <Link to={`/course/${course.slug}`}>{course.title}</Link>
+          <Link to={`/courses/${encodeURIComponent(course.courseKey || course.slug)}`}>{course.title}</Link>
         </h3>
         <p className="tels-course-card__desc">{course.description}</p>
         <div className="tels-course-card__meta">
           <span className="tels-course-card__price">{price}</span>
-          <span>{intl.formatMessage(messages.durationLong, { duration })}</span>
+          {timeText && <span>{timeText}</span>}
           <span>{formatAvailability(intl, course.availability)}</span>
         </div>
       </div>
@@ -115,10 +103,13 @@ const HomePage = () => {
   const intl = useIntl();
   useDocumentTitle(intl.formatMessage(messages.docTitle));
 
-  const featured = COURSES.filter((c) => c.featured).slice(0, 3);
-  const trending = COURSES.filter((c) => c.trending).slice(0, 3);
-  const recent = COURSES.filter((c) => c.recent).slice(0, 3);
-  const startingSoon = COURSES.filter((c) => c.startingSoon).slice(0, 3);
+  const { loading, sections } = useHomeSections(3);
+  const subjects = useSubjects();
+  const {
+    featured, trending, recent, startingSoon,
+  } = sections;
+  // A section disappears when the catalog has nothing for it (nothing flagged, no upcoming start).
+  const show = (items) => loading || items.length > 0;
 
   return (
     <>
@@ -143,14 +134,16 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="tels-section tels-section--subtle">
-        <div className="tels-container">
-          <SectionHeader title={intl.formatMessage(messages.featured)} />
-          <div className="tels-grid tels-grid--3">
-            {featured.map((c) => <CourseCard key={c.slug} course={c} />)}
+      {show(featured) && (
+        <section className="tels-section tels-section--subtle">
+          <div className="tels-container">
+            <SectionHeader title={intl.formatMessage(messages.featured)} />
+            <div className="tels-grid tels-grid--3">
+              {featured.map((c) => <CourseCard key={c.slug} course={c} />)}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="tels-section tels-section--bordered">
         <div className="tels-container">
@@ -159,13 +152,13 @@ const HomePage = () => {
             viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewAllSubjects) }}
           />
           <ul className="tels-subject-grid">
-            {SUBJECTS.map((s) => {
-              const SubjectIcon = SUBJECT_ICONS[s] || BookOpen;
+            {subjects.map((s) => {
+              const SubjectIcon = subjectIcon(s);
               return (
-                <li key={s}>
-                  <Link to={`/courses?subject=${encodeURIComponent(s)}`}>
+                <li key={s.id}>
+                  <Link to={`/courses?subject=${encodeURIComponent(s.name)}`}>
                     <SubjectIcon size={18} />
-                    <span>{formatSubject(intl, s)}</span>
+                    <span>{formatSubject(intl, s.name)}</span>
                   </Link>
                 </li>
               );
@@ -174,17 +167,19 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="tels-section tels-section--subtle">
-        <div className="tels-container">
-          <SectionHeader
-            title={intl.formatMessage(messages.trending)}
-            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewAllTrending), variant: 'outline' }}
-          />
-          <div className="tels-grid tels-grid--3">
-            {trending.map((c, i) => <TrendingCard key={c.slug} course={c} i={i} />)}
+      {show(trending) && (
+        <section className="tels-section tels-section--subtle">
+          <div className="tels-container">
+            <SectionHeader
+              title={intl.formatMessage(messages.trending)}
+              viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewAllTrending), variant: 'outline' }}
+            />
+            <div className="tels-grid tels-grid--3">
+              {trending.map((c, i) => <TrendingCard key={c.slug} course={c} i={i} />)}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="tels-section">
         <div className="tels-container">
@@ -203,25 +198,29 @@ const HomePage = () => {
 
       <EmailSignup />
 
-      <section className="tels-section">
-        <div className="tels-container">
-          <SectionHeader
-            title={intl.formatMessage(messages.recentlyAdded)}
-            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewRecentlyAdded), variant: 'outline' }}
-          />
-          <ThreeCards items={recent} />
-        </div>
-      </section>
+      {show(recent) && (
+        <section className="tels-section">
+          <div className="tels-container">
+            <SectionHeader
+              title={intl.formatMessage(messages.recentlyAdded)}
+              viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewRecentlyAdded), variant: 'outline' }}
+            />
+            <ThreeCards items={recent} />
+          </div>
+        </section>
+      )}
 
-      <section className="tels-section tels-section--subtle">
-        <div className="tels-container">
-          <SectionHeader
-            title={intl.formatMessage(messages.startingSoon)}
-            viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewStartingSoon), variant: 'outline' }}
-          />
-          <ThreeCards items={startingSoon} />
-        </div>
-      </section>
+      {show(startingSoon) && (
+        <section className="tels-section tels-section--subtle">
+          <div className="tels-container">
+            <SectionHeader
+              title={intl.formatMessage(messages.startingSoon)}
+              viewAll={{ to: '/courses', label: intl.formatMessage(messages.viewStartingSoon), variant: 'outline' }}
+            />
+            <ThreeCards items={startingSoon} />
+          </div>
+        </section>
+      )}
 
       <section className="tels-stats-band">
         <div className="tels-container tels-stats">

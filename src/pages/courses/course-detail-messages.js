@@ -141,6 +141,52 @@ const messages = defineMessages({
     defaultMessage: '{title}',
     description: 'Course about hero/facts image alt text',
   },
+  loading: { id: 'tels.course.loading', defaultMessage: 'Loading course…', description: 'Course detail loading state' },
+  notFound: {
+    id: 'tels.course.notFound',
+    defaultMessage: 'This course is not available.',
+    description: 'Course detail: unknown or hidden course',
+  },
+  backToCatalog: { id: 'tels.course.backToCatalog', defaultMessage: 'Browse all courses', description: 'Link back to the catalog' },
+  goToCourse: { id: 'tels.course.goToCourse', defaultMessage: 'Go to course', description: 'Button for an enrolled learner' },
+  enrolling: { id: 'tels.course.enrolling', defaultMessage: 'Enrolling…', description: 'Enrol button while the request runs' },
+  enrollmentClosed: {
+    id: 'tels.course.enrollmentClosed',
+    defaultMessage: 'Enrollment is not open for this course.',
+    description: 'Shown instead of the enrol button when enrolment is not allowed',
+  },
+  invitationOnly: {
+    id: 'tels.course.invitationOnly',
+    defaultMessage: 'Enrollment in this course is by invitation only.',
+    description: 'Invitation-only course message',
+  },
+  courseFull: { id: 'tels.course.courseFull', defaultMessage: 'This course is full.', description: 'Full course message' },
+  enrollFailed: {
+    id: 'tels.course.enrollFailed',
+    defaultMessage: 'Enrollment failed: {message}',
+    description: 'Enrol error message with the API reason',
+  },
+  enrollFailedGeneric: {
+    id: 'tels.course.enrollFailedGeneric',
+    defaultMessage: 'Enrollment failed. Please try again.',
+    description: 'Enrol error message without a reason',
+  },
+  signInToEnroll: {
+    id: 'tels.course.signInToEnroll',
+    defaultMessage: 'Sign in to enroll',
+    description: 'Enrol button label for anonymous visitors',
+  },
+  curriculum: { id: 'tels.course.curriculum', defaultMessage: 'Course content', description: 'Course outline heading' },
+  module: { id: 'tels.course.module', defaultMessage: 'Module {number}: {title}', description: 'Course outline item' },
+  faq: { id: 'tels.course.faq', defaultMessage: 'Frequently asked questions', description: 'FAQ heading' },
+  language: { id: 'tels.course.language', defaultMessage: 'Language', description: 'Fact label: language' },
+  startDate: { id: 'tels.course.startDate', defaultMessage: 'Start date', description: 'Fact label: start date' },
+  effortPerWeek: {
+    id: 'tels.course.effortPerWeek',
+    defaultMessage: '{hours, plural, one {# hour} other {# hours}} per week',
+    description: 'Fact value: weekly effort',
+  },
+  organization: { id: 'tels.course.organization', defaultMessage: 'Offered by', description: 'Fact label: organization' },
 });
 
 export default messages;
