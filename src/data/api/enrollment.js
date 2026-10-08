@@ -27,7 +27,8 @@ export const courseHomeUrl = (courseKey) => {
  */
 export async function enrollInCourse(courseKey, { nextPath } = {}) {
   if (!courseKey) {
-    return { ok: false, message: 'Missing course id.' };
+    // No message: the page shows its generic (translated) enrolment error.
+    return { ok: false, message: '' };
   }
   try {
     const { data } = await getAuthenticatedHttpClient().post(

@@ -23,7 +23,7 @@ const messages = defineMessages({
     description: 'Footer Privacy Policy link',
   },
   terms: {
-    id: 'indigo.footer.link.terms',
+    id: 'indigo.footer.link.termsOfUse',
     defaultMessage: 'Terms of Use',
     description: 'Footer Terms of Use link',
   },
@@ -48,7 +48,7 @@ const messages = defineMessages({
     description: 'Footer logo image alt text',
   },
   contactHeading: { id: 'indigo.footer.contact.heading', defaultMessage: 'Contact', description: 'Footer contact column heading (visually hidden)' },
-  socialLabel: { id: 'indigo.footer.social.label', defaultMessage: 'Social media', description: 'Footer social links list label' },
+  socialLabel: { id: 'indigo.footer.social.mediaLabel', defaultMessage: 'Social media', description: 'Footer social links list label' },
   copyright: {
     id: 'indigo.footer.copyright',
     defaultMessage: '© {year} {siteName}. All rights reserved.',

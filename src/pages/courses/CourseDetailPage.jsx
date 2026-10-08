@@ -328,7 +328,7 @@ const CourseDetailPage = () => {
             {effort && <Fact icon={Clock} label={intl.formatMessage(messages.timeCommitment)}>{effort}</Fact>}
             {startDate && !Number.isNaN(startDate.getTime()) && (
               <Fact icon={Calendar} label={intl.formatMessage(messages.startDate)}>
-                {course.startDateLabel || intl.formatDate(startDate, { year: 'numeric', month: 'long', day: 'numeric' })}
+                {intl.formatDate(startDate, { year: 'numeric', month: 'long', day: 'numeric' })}
               </Fact>
             )}
             {course.pace && (

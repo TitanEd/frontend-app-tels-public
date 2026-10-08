@@ -91,11 +91,8 @@ export async function apiRequest(path, {
         status: response.status,
         notFound,
         data,
-        message: resolveApiMessage(
-          data,
-          localFallbackMessage || (notFound ? 'Not found.' : 'Something went wrong.'),
-          response.statusText,
-        ),
+        // Callers pass translated fallback copy; nothing hard-coded here reaches the screen.
+        message: resolveApiMessage(data, localFallbackMessage || '', response.statusText),
         offline: false,
       };
     }

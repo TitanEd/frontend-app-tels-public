@@ -8,6 +8,8 @@ module.config.js
 
 dist/
 src/i18n/transifex_input.json
+# Pulled by `make pull_translations` (atlas) from TitanEd/openedx-translations; never committed here.
+src/i18n/messages/
 temp/babel-plugin-react-intl
 
 ### pyenv ###

@@ -63,12 +63,12 @@ const messages = defineMessages({
   },
   results: {
     id: 'tels.courses.results',
-    defaultMessage: '{count} results',
+    defaultMessage: '{count, plural, one {# result} other {# results}}',
     description: 'Courses results count with no filters',
   },
   resultsFor: {
     id: 'tels.courses.resultsFor',
-    defaultMessage: '{count} results for',
+    defaultMessage: '{count, plural, one {# result} other {# results}} for',
     description: 'Courses results count when filters are active',
   },
   clearFilters: {

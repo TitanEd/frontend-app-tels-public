@@ -121,6 +121,105 @@ const messages = defineMessages({
     defaultMessage: '{duration} long',
     description: 'Trending card duration meta',
   },
+  topic_artificialIntelligence: {
+    id: 'tels.home.topic.artificialIntelligence',
+    defaultMessage: 'Artificial Intelligence',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_leadership: {
+    id: 'tels.home.topic.leadership',
+    defaultMessage: 'Leadership',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_dataScience: {
+    id: 'tels.home.topic.dataScience',
+    defaultMessage: 'Data Science',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_python: {
+    id: 'tels.home.topic.python',
+    defaultMessage: 'Python',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_climate: {
+    id: 'tels.home.topic.climate',
+    defaultMessage: 'Climate',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_publicHealth: {
+    id: 'tels.home.topic.publicHealth',
+    defaultMessage: 'Public Health',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_design: {
+    id: 'tels.home.topic.design',
+    defaultMessage: 'Design',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_writing: {
+    id: 'tels.home.topic.writing',
+    defaultMessage: 'Writing',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_statistics: {
+    id: 'tels.home.topic.statistics',
+    defaultMessage: 'Statistics',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_machineLearning: {
+    id: 'tels.home.topic.machineLearning',
+    defaultMessage: 'Machine Learning',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_ethics: {
+    id: 'tels.home.topic.ethics',
+    defaultMessage: 'Ethics',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_product: {
+    id: 'tels.home.topic.product',
+    defaultMessage: 'Product',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_finance: {
+    id: 'tels.home.topic.finance',
+    defaultMessage: 'Finance',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_negotiation: {
+    id: 'tels.home.topic.negotiation',
+    defaultMessage: 'Negotiation',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_cybersecurity: {
+    id: 'tels.home.topic.cybersecurity',
+    defaultMessage: 'Cybersecurity',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
+  topic_teaching: {
+    id: 'tels.home.topic.teaching',
+    defaultMessage: 'Teaching',
+    description: 'Featured topic chip on the home page (links to a catalog search for the English topic name)',
+  },
 });
+
+export const FEATURED_TOPIC_MESSAGE_KEY = {
+  'Artificial Intelligence': 'topic_artificialIntelligence',
+  Leadership: 'topic_leadership',
+  'Data Science': 'topic_dataScience',
+  Python: 'topic_python',
+  Climate: 'topic_climate',
+  'Public Health': 'topic_publicHealth',
+  Design: 'topic_design',
+  Writing: 'topic_writing',
+  Statistics: 'topic_statistics',
+  'Machine Learning': 'topic_machineLearning',
+  Ethics: 'topic_ethics',
+  Product: 'topic_product',
+  Finance: 'topic_finance',
+  Negotiation: 'topic_negotiation',
+  Cybersecurity: 'topic_cybersecurity',
+  Teaching: 'topic_teaching',
+};
 
 export default messages;

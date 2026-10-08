@@ -20,7 +20,7 @@ import taxonomyMessages, {
 import heroImage from '!!file-loader!../../assets/pll/hero-learning.webp';
 import ctaCampusImage from '!!file-loader!../../assets/pll/cta-campus.webp';
 import useDocumentTitle from '../../lib/useDocumentTitle';
-import messages from './messages';
+import messages, { FEATURED_TOPIC_MESSAGE_KEY } from './messages';
 
 // Subject areas and the four course sections come from the catalog API (src/data/api/catalog.js).
 
@@ -189,7 +189,7 @@ const HomePage = () => {
           <div className="tels-topic-pills">
             {FEATURED_TOPICS.map((t) => (
               <Link key={t} to={`/courses?keywords=${encodeURIComponent(t)}`} className="tels-topic-pill">
-                {t}
+                {FEATURED_TOPIC_MESSAGE_KEY[t] ? intl.formatMessage(messages[FEATURED_TOPIC_MESSAGE_KEY[t]]) : t}
               </Link>
             ))}
           </div>
