@@ -11,6 +11,7 @@ const messages = defineMessages({
     defaultMessage: 'Footer Links',
     description: 'Screen-reader-only heading for the footer legal-links column (matches the live pll.harvard.edu markup, which hides this heading visually)',
   },
+  courses: { id: 'indigo.footer.link.courses', defaultMessage: 'Courses', description: 'Footer Courses link' },
   home: {
     id: 'indigo.footer.link.home',
     defaultMessage: 'Home',
@@ -45,6 +46,13 @@ const messages = defineMessages({
     id: 'indigo.footer.logo.alt',
     defaultMessage: '{siteName}',
     description: 'Footer logo image alt text',
+  },
+  contactHeading: { id: 'indigo.footer.contact.heading', defaultMessage: 'Contact', description: 'Footer contact column heading (visually hidden)' },
+  socialLabel: { id: 'indigo.footer.social.label', defaultMessage: 'Social media', description: 'Footer social links list label' },
+  copyright: {
+    id: 'indigo.footer.copyright',
+    defaultMessage: '© {year} {siteName}. All rights reserved.',
+    description: 'Footer copyright line',
   },
 });
 

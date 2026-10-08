@@ -1,28 +1,25 @@
 import useDocumentTitle from '../../lib/useDocumentTitle';
 
 /**
- * Shared dark-header + sticky-TOC + numbered-section layout used by all four
- * legal pages (Accessibility, Privacy Policy, Terms of Use, EEA Privacy
- * Disclosures) — matches tels-mirror's privacy-statement.tsx / terms-use.tsx
- * pattern. `title`, `intro`, `lastUpdated`, and each section's `title`/`body`
- * must already be translated by the caller (message IDs live on each legal page).
+ * Layout shared by the legal pages (Privacy Policy, Terms of Use, Accessibility, EEA
+ * Privacy Disclosures): the same page header band and body container as the contact page,
+ * then the numbered sections. `title`, `intro`, `lastUpdated` and each section's
+ * `title`/`body` arrive translated (message ids live on each legal page).
  */
 const LegalLayout = ({
   docTitle, title, intro, sections, lastUpdated, seeAlso,
 }) => {
   useDocumentTitle(docTitle);
-
   return (
     <div className="tels-legal-page">
-      <div className="tels-legal-header">
+      <div className="tels-page-header">
         <div className="tels-container">
           <h1>{title}</h1>
+          {intro ? <p className="tels-page-header__intro">{intro}</p> : null}
         </div>
       </div>
-
-      <div className="tels-container tels-legal-layout">
+      <div className="tels-container tels-page-body tels-legal-layout">
         <article className="tels-legal">
-          {intro ? <p className="tels-legal__intro">{intro}</p> : null}
           {sections.map((s) => (
             <section key={s.id} id={s.id} className="tels-legal__block">
               <h2>{s.title}</h2>

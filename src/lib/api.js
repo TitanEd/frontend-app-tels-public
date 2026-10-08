@@ -121,22 +121,58 @@ export async function apiRequest(path, {
   }
 }
 
-export function submitNewsletter(email, messages) {
-  return apiRequest('/api/tels/v1/newsletter/', {
+/**
+ * Newsletter signup: POST /api/v1/newsletter/subscribe/ (control-panel `newsletter` app, shared by
+ * every template). `source` records which page the address came from.
+ */
+export async function submitNewsletter(email, messages, source) {
+  const result = await apiRequest('/api/v1/newsletter/subscribe/', {
     method: 'POST',
-    body: { email },
+    body: { email, source: source || (typeof window !== 'undefined' ? window.location.pathname : '') },
     localSuccessMessage: messages.success,
     localFallbackMessage: messages.error,
   });
+  const body = result.data || {};
+  if (result.ok && body.ok !== false) {
+    return { ...result, ok: true, message: body.message || messages.success };
+  }
+  const fieldError = body.error?.fields?.email;
+  return {
+    ...result,
+    ok: false,
+    message: (Array.isArray(fieldError) && fieldError[0]) || body.error?.message || result.message || messages.error,
+  };
 }
 
-export function submitContact(payload, messages) {
-  return apiRequest('/api/tels/v1/contact/', {
+/**
+ * Contact form intake: POST /api/v1/contact-us/ (control-panel contat_us, shared with template-1).
+ * Payload: name, email, org (optional), subject, message, consent. A 400 carries
+ * {ok: false, error: {message, fields: {field: [errors]}}}; the result exposes `fields`.
+ */
+export async function submitContact(payload, messages) {
+  const result = await apiRequest('/api/v1/contact-us/', {
     method: 'POST',
-    body: payload,
+    body: {
+      name: payload.name || '',
+      email: payload.email || '',
+      org: payload.org || '',
+      subject: payload.subject || '',
+      message: payload.message || '',
+      consent: Boolean(payload.consent),
+    },
     localSuccessMessage: messages.thanks,
     localFallbackMessage: messages.error,
   });
+  const body = result.data || {};
+  if (result.ok && body.ok !== false) {
+    return { ...result, ok: true, message: body.message || messages.thanks };
+  }
+  return {
+    ...result,
+    ok: false,
+    message: body.error?.message || result.message || messages.error,
+    fields: body.error?.fields || {},
+  };
 }
 
 /** LMS enroll / login URL for a public course card (demo-safe). */

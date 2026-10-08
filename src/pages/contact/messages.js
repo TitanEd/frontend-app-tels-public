@@ -101,6 +101,22 @@ const messages = defineMessages({
     defaultMessage: 'LinkedIn',
     description: 'Contact LinkedIn link label',
   },
+  org: { id: 'tels.contact.org', defaultMessage: 'Organization (optional)', description: 'Contact form: organization' },
+  subject: { id: 'tels.contact.subject', defaultMessage: 'Subject', description: 'Contact form: subject' },
+  subjectPlaceholder: { id: 'tels.contact.subject.placeholder', defaultMessage: 'Choose a subject', description: 'Contact form: subject placeholder' },
+  subjectRequired: { id: 'tels.contact.subject.required', defaultMessage: 'Choose a subject.', description: 'Contact form validation' },
+  subjectGeneral: { id: 'tels.contact.subject.general', defaultMessage: 'General question', description: 'Contact form subject option' },
+  subjectCourses: { id: 'tels.contact.subject.courses', defaultMessage: 'Courses and enrollment', description: 'Contact form subject option' },
+  subjectPartnership: { id: 'tels.contact.subject.partnership', defaultMessage: 'Partnership', description: 'Contact form subject option' },
+  subjectSupport: { id: 'tels.contact.subject.support', defaultMessage: 'Technical support', description: 'Contact form subject option' },
+  consent: {
+    id: 'tels.contact.consent',
+    defaultMessage: 'I agree to the processing of this message according to the {privacyLink}.',
+    description: 'Contact form consent checkbox',
+  },
+  consentPrivacy: { id: 'tels.contact.consent.privacy', defaultMessage: 'Privacy Policy', description: 'Consent checkbox link label' },
+  consentRequired: { id: 'tels.contact.consent.required', defaultMessage: 'Please accept the privacy policy.', description: 'Contact form validation' },
+  followUs: { id: 'tels.contact.followUs', defaultMessage: 'Follow us', description: 'Contact page social links heading' },
 });
 
 export default messages;
