@@ -28,6 +28,8 @@ import {
 import { getNoCourseImageUrl } from '../../data/api/http';
 import { displayApiError } from '../../lib/displayApiError';
 import useDocumentTitle from '../../lib/useDocumentTitle';
+import { formatFacetValue } from '../../lib/facetLabels';
+import { formatStartDate } from '../../lib/courseDates';
 import messages from './course-detail-messages';
 import './CourseDetailPage.scss';
 
@@ -202,10 +204,10 @@ const CourseDetailPage = () => {
                   <span><FontAwesomeIcon icon={faClock} /> {course.duration}</span>
                 )}
                 {course.level && (
-                  <span><FontAwesomeIcon icon={faSignal} /> {course.level}</span>
+                  <span><FontAwesomeIcon icon={faSignal} /> {formatFacetValue(intl, 'level', course.level)}</span>
                 )}
                 {course.language && (
-                  <span><FontAwesomeIcon icon={faGlobe} /> {course.language}</span>
+                  <span><FontAwesomeIcon icon={faGlobe} /> {formatFacetValue(intl, 'language', course.language)}</span>
                 )}
               </div>
               {(course.org || course.startDate) && (
@@ -217,10 +219,16 @@ const CourseDetailPage = () => {
                       <strong>{course.org}</strong>
                     </>
                   )}
-                  {course.startDate && (
+                  {course.selfPaced && (
+                    <>
+                      {' · '}
+                      {formatStartDate(intl, course)}
+                    </>
+                  )}
+                  {!course.selfPaced && course.startDate && (
                     <>
                       {' '}
-                      {intl.formatMessage(messages.startsOn, { startDate: course.startDate })}
+                      {intl.formatMessage(messages.startsOn, { startDate: formatStartDate(intl, course) })}
                     </>
                   )}
                 </p>

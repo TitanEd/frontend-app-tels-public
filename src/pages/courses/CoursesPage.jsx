@@ -18,6 +18,7 @@ import {
   selectedToCatalogFilters,
 } from '../../data/api/catalogAggs';
 import { displayApiError } from '../../lib/displayApiError';
+import { formatFacetValue } from '../../lib/facetLabels';
 import useDocumentTitle from '../../lib/useDocumentTitle';
 import messages from './messages';
 import './CoursesPage.scss';
@@ -292,7 +293,7 @@ const CoursesPage = () => {
                   {f.options.map((opt) => (
                     <label key={opt}>
                       <input type="checkbox" checked={selected[f.key].includes(opt)} onChange={() => toggle(f.key, opt)} />
-                      {opt}
+                      {formatFacetValue(intl, f.key, opt)}
                     </label>
                   ))}
                   <div className="tels-filterpill__actions">

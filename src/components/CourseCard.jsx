@@ -7,6 +7,7 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 import { fetchCourse } from '../data/api';
 import { getNoCourseImageUrl } from '../data/api/http';
 import messages from './messages';
+import { formatStartDate } from '../lib/courseDates';
 import './CourseCard.scss';
 
 /** Prefer Open edX course key so detail API can load without a slug search. */
@@ -104,7 +105,7 @@ const CourseCard = ({ course }) => {
           <span>
             <FontAwesomeIcon icon={faCalendar} />
             {' '}
-            {course.startDate}
+            {formatStartDate(intl, course)}
           </span>
           )}
         </div>

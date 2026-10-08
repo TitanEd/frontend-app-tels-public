@@ -57,6 +57,9 @@ export const mapSearchHitToCourse = (hit) => {
     level: pick(data.level) || '',
     duration: pick(data.duration, data.effort ? `${data.effort}` : null) || '',
     startDate: pick(data.startDateLabel, data.start_date_label, data.advertisedStart, data.start) || '',
+    start: pick(data.start) || '',
+    selfPaced: Boolean(data.self_paced || data.selfPaced || data.pacing === 'self'
+      || pick(data.startDateLabel, data.start_date_label) === 'Self-paced'),
     shortDesc: pick(content.shortDescription, content.short_description, data.shortDescription) || '',
     longDesc: pick(
       stripHtml(content.overview),
@@ -125,6 +128,9 @@ export const mapDetailToCourse = (raw) => {
       data.advertised_start,
       data.start,
     ) || '',
+    start: pick(data.start) || '',
+    selfPaced: Boolean(data.self_paced || data.selfPaced || data.pacing === 'self'
+      || pick(data.startDateLabel, data.start_date_label) === 'Self-paced'),
     shortDesc: pick(data.shortDescription, data.short_description) || '',
     longDesc: pick(stripHtml(data.overview)) || '',
     free,
